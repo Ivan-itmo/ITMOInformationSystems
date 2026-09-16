@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python / Jupyter
+__pycache__/
+*.py[cod]
+*.ipynb_checkpoints/
+.env
+venv/
+env/
+
+# Java
+*.class
+*.jar
+*.war
+target/
+build/
+.idea/
+
+# Node.js / Web
+node_modules/
+npm-debug.log
+dist/
+
+# Базы данных и временные файлы
+*.sqlite
+*.db
+*.log
+*.tmp
+*.swp
