@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Routes</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; color: #1f2933; background: #f5f7fa; padding: 20px; }
+        
+        nav { display: flex; gap: 8px; margin-bottom: 20px; }
+        nav button { 
+            height: 36px; padding: 0 20px; border: 1px solid #cbd5e1; border-radius: 6px; 
+            background: white; color: #1f2933; cursor: pointer; font-size: 14px; font-weight: 500;
+        }
+        nav button:hover { background: #f1f5f9; }
+        nav button.active { background: #2563eb; color: white; border-color: #2563eb; }
+
+        section { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
+        h2 { margin: 0 0 15px 0; font-size: 18px; font-weight: 600; }
+        h3 { margin: 20px 0 10px 0; font-size: 16px; font-weight: 600; color: #475569; }
+
+        .toolbar { 
+            display: flex; 
+            flex-wrap: nowrap; 
+            align-items: center; 
+            gap: 10px; 
+            padding: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow-x: auto; 
+        }
+
+        .toolbar input, 
+        .toolbar select, 
+        .toolbar button,
+        .toolbar span {
+            height: 36px !important;
+            min-height: 36px !important;
+            padding: 0 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            white-space: nowrap;
+            outline: none;
+        }
+
+        .toolbar input:focus, .toolbar select:focus { border-color: #2563eb; }
+        .toolbar input[type="text"], 
+        .toolbar input[type="number"] { flex: 1; min-width: 100px; }
+        .toolbar select { min-width: 80px; width: auto; }
+        .toolbar button { 
+            background: #2563eb; color: white; border-color: #2563eb; cursor: pointer; min-width: 110px; 
+        }
+        .toolbar button.secondary { background: white; color: #1f2933; min-width: 90px; }
+        .toolbar button.danger { background: #dc2626; border-color: #dc2626; min-width: 90px; }
+        .toolbar span { border: none; background: transparent; padding: 0; color: #64748b; }
+        .toolbar span.ok { color: #047857; }
+        .toolbar span.error { color: #b91c1c; }
+
+        table { width: 100%; border-collapse: collapse; background: white; font-size: 14px; }
+        th, td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: left; vertical-align: middle; }
+        th { background: #f8fafc; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        th:hover { background: #e2e8f0; }
+
+        .table-btn {
+            height: 28px !important;
+            min-height: 28px !important;
+            padding: 0 10px !important;
+            min-width: auto !important;
+            font-size: 13px !important;
+            border-radius: 4px !important;
+            margin-right: 4px;
+            transition: all 0.2s;
+        }
+
+        .table-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .table-btn.secondary {
+            background: white;
+            color: #1f2933;
+            border: 1px solid #cbd5e1;
+        }
+
+        .table-btn.secondary:hover {
+            background: #f1f5f9;
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
+        .table-btn.danger {
+            background: #dc2626;
+            color: white;
+            border-color: #dc2626;
+        }
+
+        .table-btn.danger:hover {
+            background: #b91c1c;
+            border-color: #b91c1c;
+        }
+
+        dialog button {
+            height: 36px;
+            min-height: 36px;
+            padding: 0 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        dialog button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        dialog button.secondary {
+            background: white;
+            color: #1f2933;
+            border: 1px solid #cbd5e1;
+        }
+
+        dialog button.secondary:hover {
+            background: #f1f5f9;
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
+        dialog button.danger {
+            background: #dc2626;
+            color: white;
+            border-color: #dc2626;
+        }
+
+        dialog button.danger:hover {
+            background: #b91c1c;
+            border-color: #b91c1c;
+        }
+
+        .hidden { display: none; }
+        pre { white-space: pre-wrap; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; font-size: 13px; margin-top: 15px; }
+        dialog { width: min(600px, 100%); border: 0; border-radius: 10px; padding: 0; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        dialog form { padding: 24px; display: grid; gap: 16px; }
+        dialog h2 { margin: 0; font-size: 20px; }
+        dialog::backdrop { background: rgba(15, 23, 42, 0.5); }
+        .dialog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .dialog-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #475569; }
+        .dialog-grid input, .dialog-grid select { height: 36px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0 10px; font-size: 14px; }
+        .row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <button data-view="routes" class="active">Маршруты</button>
+        <button data-view="locations">Локации</button>
+        <button data-view="operations">Спецоперации</button>
+    </nav>
+
+    <section id="routesView">
+        <div class="toolbar">
+            <button id="newRouteButton">+ Создать</button>
+            <input id="filterInput" type="text" placeholder="Фильтр по названию">
+            <select id="pageSize"><option>5</option><option selected>10</option><option>20</option></select>
+            <input id="routeIdInput" type="number" min="1" placeholder="ID">
+            <button id="findRouteById" class="secondary">Найти</button>
+            <button id="prevPage" class="secondary">← Назад</button>
+            <span id="pageInfo"></span>
+            <button id="nextPage" class="secondary">Вперед →</button>
+            <span id="routesStatus" style="margin-left: auto;"></span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th data-sort="id">ID</th>
+                    <th data-sort="name">Название</th>
+                    <th>Координаты</th>
+                    <th data-sort="creationDate">Создан</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th data-sort="distance">Distance</th>
+                    <th data-sort="rating">Rating</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody id="routesBody"></tbody>
+        </table>
+    </section>
+
+    <section id="locationsView" class="hidden">
+        <div class="toolbar">
+            <input id="locX" type="number" step="any" placeholder="Координата X" required>
+            <input id="locY" type="number" step="any" placeholder="Координата Y" required>
+            <input id="locZ" type="number" step="any" placeholder="Координата Z" required>
+            <button id="addLocationBtn">Добавить локацию</button>
+            <span id="locationMessage" class="ok"></span>
+        </div>
+        <table>
+            <thead><tr><th>ID</th><th>X</th><th>Y</th><th>Z</th></tr></thead>
+            <tbody id="locationsBody"></tbody>
+        </table>
+    </section>
+
+    <section id="operationsView" class="hidden">
+        <h2>Специальные операции</h2>
+        <div class="toolbar">
+            <button id="avgRating">Средний rating</button>
+            <input id="belowRating" type="number" min="1" value="10" placeholder="Рейтинг <">
+            <button id="countBelow">Посчитать</button>
+            <button id="uniqueRatings">Уникальные rating</button>
+            <input id="shortestFrom" type="number" min="1" step="1" required placeholder="From ID">
+            <input id="shortestTo" type="number" min="1" step="1" required placeholder="To ID">
+            <button id="shortestRoute">Самый короткий</button>
+        </div>
+
+        <h3>Добавить маршрут через функцию БД</h3>
+        <form id="functionRouteForm" class="toolbar">
+            <input name="name" placeholder="Название" required style="flex: 1.5;">
+            <input name="coordX" type="number" step="any" placeholder="X" required style="width: 80px;">
+            <input name="coordY" type="number" step="any" placeholder="Y" required style="width: 80px;">
+            <select name="fromLocationId" style="width: 120px;"><option value="">From</option></select>
+            <select name="toLocationId" required style="width: 120px;"><option value="">To</option></select>
+            <input name="distance" type="number" step="any" min="0" placeholder="Dist" required style="width: 80px;">
+            <input name="rating" type="number" placeholder="Rate" required style="width: 80px;">
+            <button type="submit">Добавить через БД</button>
+        </form>
+        <pre id="operationResult"></pre>
+    </section>
+
+    <dialog id="routeDialog">
+        <form id="routeForm" method="dialog">
+            <h2 id="dialogTitle">Маршрут</h2>
+            <input name="id" type="hidden">
+            <div class="dialog-grid">
+                <label>Название<input name="name" required></label>
+                <label>Координата X<input name="coordX" type="number" step="any" required></label>
+                <label>Координата Y<input name="coordY" type="number" step="any" required></label>
+                <label>From<select name="fromLocationId"></select></label>
+                <label>To<select name="toLocationId" required></select></label>
+                <label>Distance<input name="distance" type="number" step="any" min="0" required></label>
+                <label>Rating<input name="rating" type="number" min="1" required></label>
+            </div>
+            <span id="routeError" class="error"></span>
+            <div class="row">
+                <button type="button" class="secondary" onclick="routeDialog.close()">Отмена</button>
+                <button id="saveRouteButton">Сохранить</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="detailsDialog">
+        <form method="dialog">
+            <h2>Информация о маршруте</h2>
+            <pre id="routeDetails"></pre>
+            <div class="row">
+                <button type="button" class="secondary" onclick="detailsDialog.close()">Закрыть</button>
+                <button type="button" id="editFromDetails">Изменить</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="deleteDialog">
+        <form id="deleteForm" method="dialog">
+            <h2>Удаление маршрута</h2>
+            <input name="id" type="hidden">
+            <p style="font-size: 14px; color: #64748b; margin: 0;">Связать зависимые маршруты с другим?</p>
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px;">
+                Маршрут-замена
+                <select name="replacementRouteId" style="height: 36px; border: 1px solid #cbd5e1; border-radius: 6px;"></select>
+            </label>
+            <span id="deleteError" class="error"></span>
+            <div class="row">
+                <button type="button" class="secondary" onclick="deleteDialog.close()">Отмена</button>
+                <button class="danger">Удалить</button>
+            </div>
+        </form>
+    </dialog>
+
+<script>
+const api = 'api';
+let page = 0;
+let sortBy = 'id';
+let direction = 'asc';
+let routes = [];
+let locations = [];
+
+const routesBody = document.querySelector('#routesBody');
+const locationsBody = document.querySelector('#locationsBody');
+const routeDialog = document.querySelector('#routeDialog');
+const routeForm = document.querySelector('#routeForm');
+const detailsDialog = document.querySelector('#detailsDialog');
+const deleteDialog = document.querySelector('#deleteDialog');
+const deleteForm = document.querySelector('#deleteForm');
+let detailsRouteId = null;
+
+async function request(path, options = {}) {
+    const response = await fetch(`${api}${path}`, {
+        headers: { 'Content-Type': 'application/json' },
+        ...options
+    });
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Ошибка запроса' }));
+        throw new Error(error.message);
+    }
+    return response.status === 204 ? null : response.json();
+}
+
+async function loadLocations() {
+    locations = await request('/locations');
+    locationsBody.innerHTML = locations.map(location => (
+        `<tr><td>${location.id}</td><td>${location.x}</td><td>${location.y}</td><td>${location.z}</td></tr>`
+    )).join('');
+    fillLocationSelects();
+}
+
+async function loadRoutes() {
+    const size = Number(document.querySelector('#pageSize').value); 
+    const filter = encodeURIComponent(document.querySelector('#filterInput').value);
+    const data = await request(`/routes?page=${page}&size=${size}&filter=${filter}&sortBy=${sortBy}&direction=${direction}`);
+    routes = data.items;
+    
+    routesBody.innerHTML = routes.map(route => `
+        <tr>
+            <td>${route.id}</td>
+            <td>${route.name}</td>
+            <td>${route.coordinates.x}, ${route.coordinates.y}</td>
+            <td>${route.creationDate ?? ''}</td>
+            <td>${formatLocation(route.from)}</td>
+            <td>${formatLocation(route.to)}</td>
+            <td>${route.distance}</td>
+            <td>${route.rating}</td>
+            <td>
+                <button class="table-btn secondary" onclick="editRoute(${route.id})">Изм.</button>
+                <button class="table-btn secondary" onclick="showRoute(${route.id})">Инфо</button>
+                <button class="table-btn danger" onclick="deleteRoute(${route.id})">Удалить</button>
+            </td>
+        </tr>
+    `).join('');
+
+    const totalPages = Math.ceil(data.total / size) || 1;
+    const currentPage = data.page; 
+
+    document.querySelector('#pageInfo').textContent = `Страница ${currentPage + 1} из ${totalPages}`;
+    document.querySelector('#routesStatus').textContent = `Всего: ${data.total}`;
+
+    const prevBtn = document.querySelector('#prevPage');
+    const nextBtn = document.querySelector('#nextPage');
+
+    prevBtn.disabled = (currentPage === 0);
+    nextBtn.disabled = (currentPage + 1 >= totalPages);
+}
+
+function formatLocation(location) {
+    return location ? `#${location.id}` : '—';
+}
+
+function fillLocationSelects() {
+    const opts = '<option value="">—</option>' + locations.map(l => `<option value="${l.id}">#${l.id}</option>`).join('');
+    document.querySelectorAll('select[name="fromLocationId"], select[name="toLocationId"]').forEach(select => {
+        select.innerHTML = opts;
+    });
+}
+
+function routePayload(form) {
+    return {
+        name: form.elements.name.value,
+        coordinates: { x: Number(form.elements.coordX.value), y: Number(form.elements.coordY.value) },
+        fromLocationId: form.elements.fromLocationId.value ? Number(form.elements.fromLocationId.value) : null,
+        toLocationId: Number(form.elements.toLocationId.value),
+        distance: Number(form.elements.distance.value),
+        rating: Number(form.elements.rating.value)
+    };
+}
+
+function hasPositiveDistance(form) {
+    const input = form.elements.distance;
+    return input.value.trim() !== '' && input.checkValidity() && Number(input.value) > 0;
+}
+
+window.editRoute = async id => {
+    const route = routes.find(item => item.id === id) ?? await request(`/routes/${id}`);
+    routeForm.elements.id.value = route.id;
+    routeForm.elements.name.value = route.name;
+    routeForm.elements.coordX.value = route.coordinates.x;
+    routeForm.elements.coordY.value = route.coordinates.y;
+    routeForm.elements.fromLocationId.value = route.from?.id ?? '';
+    routeForm.elements.toLocationId.value = route.to?.id ?? '';
+    routeForm.elements.distance.value = route.distance;
+    routeForm.elements.rating.value = route.rating;
+    document.querySelector('#dialogTitle').textContent = `Маршрут #${route.id}`;
+    document.querySelector('#routeError').textContent = '';
+    routeDialog.showModal();
+};
+
+window.deleteRoute = async id => {
+    deleteForm.elements.id.value = id;
+    const options = routes.filter(r => r.id !== id).map(r => `<option value="${r.id}">#${r.id}: ${r.name}</option>`).join('');
+    deleteForm.elements.replacementRouteId.innerHTML = '<option value="">Без замены</option>' + options;
+    document.querySelector('#deleteError').textContent = '';
+    deleteDialog.showModal();
+};
+
+window.showRoute = async id => {
+    const route = await request(`/routes/${id}`);
+    detailsRouteId = route.id;
+    document.querySelector('#routeDetails').textContent = JSON.stringify(route, null, 2);
+    detailsDialog.showModal();
+};
+
+document.querySelector('#newRouteButton').addEventListener('click', () => {
+    routeForm.reset();
+    routeForm.elements.id.value = '';
+    document.querySelector('#dialogTitle').textContent = 'Новый маршрут';
+    document.querySelector('#routeError').textContent = '';
+    routeDialog.showModal();
+});
+
+routeForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!hasPositiveDistance(routeForm)) {
+        document.querySelector('#routeError').textContent = 'Дистанция должна быть больше 0';
+        routeForm.elements.distance.focus();
+        return;
+    }
+    const id = routeForm.elements.id.value;
+    try {
+        await request(id ? `/routes/${id}` : '/routes', { method: id ? 'PUT' : 'POST', body: JSON.stringify(routePayload(routeForm)) });
+        routeDialog.close();
+        await loadRoutes();
+    } catch (error) { document.querySelector('#routeError').textContent = error.message; }
+});
+
+deleteForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    const id = deleteForm.elements.id.value;
+    const replacement = deleteForm.elements.replacementRouteId.value;
+    try {
+        await request(`/routes/${id}`, { method: 'DELETE', body: JSON.stringify({ replacementRouteId: replacement ? Number(replacement) : null }) });
+        deleteDialog.close();
+        await refreshAll();
+    } catch (error) { document.querySelector('#deleteError').textContent = error.message; }
+});
+
+document.querySelector('#addLocationBtn').addEventListener('click', async () => {
+    const x = document.querySelector('#locX').value;
+    const y = document.querySelector('#locY').value;
+    const z = document.querySelector('#locZ').value;
+    if(!x || !y || !z) return;
+    
+    await request('/locations', {
+        method: 'POST',
+        body: JSON.stringify({ x: Number(x), y: Number(y), z: Number(z) })
+    });
+    document.querySelector('#locX').value = '';
+    document.querySelector('#locY').value = '';
+    document.querySelector('#locZ').value = '';
+    const msg = document.querySelector('#locationMessage');
+    msg.textContent = 'Добавлено!';
+    setTimeout(() => msg.textContent = '', 2000);
+    await loadLocations();
+});
+
+document.querySelector('#findRouteById').addEventListener('click', async () => {
+    const id = document.querySelector('#routeIdInput').value;
+    if (id) await showRoute(Number(id));
+});
+
+document.querySelector('#editFromDetails').addEventListener('click', async () => { detailsDialog.close(); await editRoute(detailsRouteId); });
+
+document.querySelectorAll('th[data-sort]').forEach(th => th.addEventListener('click', () => {
+    direction = sortBy === th.dataset.sort && direction === 'asc' ? 'desc' : 'asc';
+    sortBy = th.dataset.sort;
+    loadRoutes();
+}));
+
+document.querySelector('#filterInput').addEventListener('input', () => { page = 0; loadRoutes(); });
+document.querySelector('#pageSize').addEventListener('change', () => { page = 0; loadRoutes(); });
+document.querySelector('#prevPage').addEventListener('click', () => { page = Math.max(0, page - 1); loadRoutes(); });
+document.querySelector('#nextPage').addEventListener('click', () => { page += 1; loadRoutes(); });
+
+document.querySelectorAll('nav button').forEach(button => {
+    button.addEventListener('click', () => {
+        document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        document.querySelectorAll('section').forEach(section => section.classList.add('hidden'));
+        document.querySelector(`#${button.dataset.view}View`).classList.remove('hidden');
+    });
+});
+
+document.querySelector('#avgRating').addEventListener('click', async () => showResult(await request('/operations/avg-rating')));
+document.querySelector('#countBelow').addEventListener('click', async () => showResult(await request(`/operations/count-below-rating?rating=${document.querySelector('#belowRating').value}`)));
+document.querySelector('#uniqueRatings').addEventListener('click', async () => showResult(await request('/operations/unique-ratings')));
+document.querySelector('#shortestRoute').addEventListener('click', async () => {
+    const fromInput = document.querySelector('#shortestFrom');
+    const toInput = document.querySelector('#shortestTo');
+    const ids = [];
+    for (const [input, label] of [[fromInput, 'From'], [toInput, 'To']]) {
+        const id = Number(input.value);
+        if (!input.value.trim() || !input.checkValidity() || !Number.isSafeInteger(id) || id < 1) {
+            showResult({ error: `Укажите корректный ${label} ID: целое число больше 0.` });
+            input.focus();
+            return;
+        }
+        if (!locations.some(location => location.id === id)) {
+            showResult({ error: `Локация с ${label} ID ${id} не найдена.` });
+            input.focus();
+            return;
+        }
+        ids.push(id);
+    }
+    try {
+        showResult(await request(`/operations/shortest-route?fromLocationId=${ids[0]}&toLocationId=${ids[1]}`));
+    } catch (error) {
+        showResult({ error: error.message });
+    }
+});
+
+document.querySelector('#functionRouteForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!hasPositiveDistance(event.currentTarget)) {
+        showResult({ error: 'Дистанция должна быть больше 0' });
+        event.currentTarget.elements.distance.focus();
+        return;
+    }
+    try {
+        const route = await request('/operations/add-between-locations', { method: 'POST', body: JSON.stringify(routePayload(event.currentTarget)) });
+        event.currentTarget.reset();
+        showResult(route);
+        await loadRoutes();
+    } catch (error) { showResult({ error: error.message }); }
+});
+
+function showResult(value) {
+    document.querySelector('#operationResult').textContent = JSON.stringify(value, null, 2);
+}
+
+async function refreshAll() { await loadLocations(); await loadRoutes(); }
+
+function connectUpdates() {
+    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const contextPath = location.pathname.replace(/\/[^/]*$/, '');
+    const socket = new WebSocket(`${protocol}//${location.host}${contextPath}/updates`);
+    socket.addEventListener('message', refreshAll);
+    socket.addEventListener('close', () => setTimeout(connectUpdates, 2000));
+}
+
+refreshAll().then(connectUpdates);
+</script>
+</body>
+</html>

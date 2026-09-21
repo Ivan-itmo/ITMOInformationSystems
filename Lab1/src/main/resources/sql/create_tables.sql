@@ -1,26 +1,40 @@
+CREATE SCHEMA IF NOT EXISTS s465544;
+SET search_path TO s465544;
+
 -- Координаты
 CREATE TABLE IF NOT EXISTS coordinates (
-                                           id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-                                           x DOUBLE PRECISION NOT NULL,
-                                           y BIGINT NOT NULL
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    x DOUBLE PRECISION NOT NULL,
+    y DOUBLE PRECISION NOT NULL
 );
 
 -- Локация
 CREATE TABLE IF NOT EXISTS location (
-                                        id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-                                        x INTEGER NOT NULL,
-                                        y BIGINT NOT NULL,
-                                        z REAL NOT NULL
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    x DOUBLE PRECISION NOT NULL,
+    y DOUBLE PRECISION NOT NULL,
+    z DOUBLE PRECISION NOT NULL
 );
 
 -- Маршрут
 CREATE TABLE IF NOT EXISTS route (
-                                     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-                                     name VARCHAR(255) NOT NULL CHECK (length(trim(name)) > 0),
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(255) NOT NULL CHECK (length(trim(name)) > 0),
     creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     coordinates_id BIGINT NOT NULL REFERENCES coordinates(id) ON DELETE CASCADE,
     from_location_id BIGINT REFERENCES location(id) ON DELETE SET NULL,
     to_location_id BIGINT NOT NULL REFERENCES location(id) ON DELETE RESTRICT,
-    distance DOUBLE PRECISION NOT NULL CHECK (distance > 1),
-    rating BIGINT NOT NULL CHECK (rating > 0)
-    );
+    distance DOUBLE PRECISION NOT NULL CHECK (distance > 0),
+    rating DOUBLE PRECISION NOT NULL CHECK (rating > 0)
+);
+
+-- Эти команды нужны только если таблицы уже существовали с другими типами
+ALTER TABLE coordinates ALTER COLUMN y TYPE DOUBLE PRECISION USING y::DOUBLE PRECISION;
+ALTER TABLE location ALTER COLUMN x TYPE DOUBLE PRECISION USING x::DOUBLE PRECISION;
+ALTER TABLE location ALTER COLUMN y TYPE DOUBLE PRECISION USING y::DOUBLE PRECISION;
+ALTER TABLE location ALTER COLUMN z TYPE DOUBLE PRECISION USING z::DOUBLE PRECISION;
+
+-- Обновить ограничение и в таблице, созданной до изменения порога.
+ALTER TABLE route
+    DROP CONSTRAINT IF EXISTS route_distance_check,
+    ADD CONSTRAINT route_distance_check CHECK (distance > 0);

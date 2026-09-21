@@ -1,3 +1,5 @@
+SET search_path TO s465544;
+
 -- 1. Рассчитать среднее значение поля rating
 CREATE OR REPLACE FUNCTION get_avg_rating()
 RETURNS DOUBLE PRECISION AS $$
