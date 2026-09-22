@@ -143,7 +143,12 @@
         }
 
         .hidden { display: none; }
-        pre { white-space: pre-wrap; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; font-size: 13px; margin-top: 15px; }
+        .result { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; font-size: 14px; margin-top: 15px; overflow-wrap: anywhere; }
+        .result:empty { display: none; }
+        .result p { margin: 0 0 10px; }
+        .result dl { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 16px; }
+        .result dt { color: #475569; }
+        .result dd { margin: 0; white-space: pre-wrap; }
         dialog { width: min(600px, 100%); border: 0; border-radius: 10px; padding: 0; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
         dialog form { padding: 24px; display: grid; gap: 16px; }
         dialog h2 { margin: 0; font-size: 20px; }
@@ -228,7 +233,7 @@
             <input name="rating" type="number" placeholder="Rate" required style="width: 80px;">
             <button type="submit">Добавить через БД</button>
         </form>
-        <pre id="operationResult"></pre>
+        <div id="operationResult" class="result" role="status"></div>
     </section>
 
     <dialog id="routeDialog">
@@ -255,7 +260,7 @@
     <dialog id="detailsDialog">
         <form method="dialog">
             <h2>Информация о маршруте</h2>
-            <pre id="routeDetails"></pre>
+            <div id="routeDetails" class="result"></div>
             <div class="row">
                 <button type="button" class="secondary" onclick="detailsDialog.close()">Закрыть</button>
                 <button type="button" id="editFromDetails">Изменить</button>
@@ -446,7 +451,7 @@ window.deleteLocation = async id => {
 window.showRoute = async id => {
     const route = await request(`/routes/${id}`);
     detailsRouteId = route.id;
-    document.querySelector('#routeDetails').textContent = JSON.stringify(route, null, 2);
+    renderRouteDetails(document.querySelector('#routeDetails'), route);
     detailsDialog.showModal();
 };
 
@@ -531,9 +536,9 @@ document.querySelectorAll('nav button').forEach(button => {
     });
 });
 
-document.querySelector('#avgRating').addEventListener('click', async () => showResult(await request('/operations/avg-rating')));
-document.querySelector('#countBelow').addEventListener('click', async () => showResult(await request(`/operations/count-below-rating?rating=${document.querySelector('#belowRating').value}`)));
-document.querySelector('#uniqueRatings').addEventListener('click', async () => showResult(await request('/operations/unique-ratings')));
+document.querySelector('#avgRating').addEventListener('click', () => showOperation('/operations/avg-rating', 'Средний рейтинг'));
+document.querySelector('#countBelow').addEventListener('click', () => showOperation(`/operations/count-below-rating?rating=${document.querySelector('#belowRating').value}`, 'Количество маршрутов с рейтингом ниже указанного'));
+document.querySelector('#uniqueRatings').addEventListener('click', () => showOperation('/operations/unique-ratings', 'Уникальные рейтинги'));
 document.querySelector('#shortestRoute').addEventListener('click', async () => {
     const fromInput = document.querySelector('#shortestFrom');
     const toInput = document.querySelector('#shortestTo');
@@ -553,7 +558,7 @@ document.querySelector('#shortestRoute').addEventListener('click', async () => {
         ids.push(id);
     }
     try {
-        showResult(await request(`/operations/shortest-route?fromLocationId=${ids[0]}&toLocationId=${ids[1]}`));
+        showResult(await request(`/operations/shortest-route?fromLocationId=${ids[0]}&toLocationId=${ids[1]}`), 'Самый короткий маршрут');
     } catch (error) {
         showResult({ error: error.message });
     }
@@ -570,13 +575,58 @@ document.querySelector('#functionRouteForm').addEventListener('submit', async ev
     try {
         const route = await request('/operations/add-between-locations', { method: 'POST', body: JSON.stringify(routePayload(form)) });
         form.reset();
-        showResult(route);
+        showResult(route, 'Маршрут добавлен');
         await loadRoutes();
     } catch (error) { showResult({ error: error.message }); }
 });
 
-function showResult(value) {
-    document.querySelector('#operationResult').textContent = JSON.stringify(value, null, 2);
+function renderRouteDetails(container, route) {
+    const locationDetails = location => location
+        ? `#${location.id} (X: ${location.x}, Y: ${location.y}, Z: ${location.z})`
+        : 'Не указана';
+    const fields = [
+        ['ID', route.id],
+        ['Название', route.name],
+        ['Координаты', `X: ${route.coordinates.x}, Y: ${route.coordinates.y}`],
+        ['Дата создания', route.creationDate ? new Date(route.creationDate).toLocaleString('ru-RU') : '—'],
+        ['Откуда', locationDetails(route.from)],
+        ['Куда', locationDetails(route.to)],
+        ['Дистанция', route.distance],
+        ['Рейтинг', route.rating]
+    ];
+    const list = document.createElement('dl');
+    fields.forEach(([label, value]) => {
+        const term = document.createElement('dt');
+        const description = document.createElement('dd');
+        term.textContent = label;
+        description.textContent = value ?? '—';
+        list.append(term, description);
+    });
+    container.replaceChildren(list);
+}
+
+async function showOperation(path, label) {
+    try {
+        showResult(await request(path), label);
+    } catch (error) {
+        showResult({ error: error.message });
+    }
+}
+
+function showResult(value, label = 'Результат') {
+    const container = document.querySelector('#operationResult');
+    if (value?.error) {
+        container.textContent = `Ошибка: ${value.error}`;
+    } else if (value?.id != null) {
+        renderRouteDetails(container, value);
+        const title = document.createElement('p');
+        title.textContent = label;
+        container.prepend(title);
+    } else {
+        const result = value?.value;
+        const text = Array.isArray(result) ? (result.join(', ') || 'Нет данных') : (result ?? 'Нет данных');
+        container.textContent = `${label}: ${text}`;
+    }
 }
 
 async function refreshAll() { await loadLocations(); await loadRoutes(); }

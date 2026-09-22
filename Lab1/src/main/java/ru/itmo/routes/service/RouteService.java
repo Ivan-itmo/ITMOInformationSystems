@@ -133,7 +133,6 @@ public class RouteService {
 
     @Transactional
     public void deleteLocation(long id, DeleteLocationRequest request) {
-        // Block concurrent foreign-key references until reassignment and deletion commit.
         List<?> lockedIds = entityManager.createNativeQuery(
                 "select id from {h-schema}location where id = :id for update")
                 .setParameter("id", id)
