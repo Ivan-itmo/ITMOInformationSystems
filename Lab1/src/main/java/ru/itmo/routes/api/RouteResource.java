@@ -98,10 +98,7 @@ public class RouteResource {
 
     @GET
     @Path("operations/shortest-route")
-    public RouteResponse getShortestRoute(
-            @QueryParam("fromLocationId") long fromLocationId,
-            @QueryParam("toLocationId") long toLocationId
-    ) {
+    public RouteResponse getShortestRoute(@QueryParam("fromLocationId") long fromLocationId, @QueryParam("toLocationId") long toLocationId) {
         return routeService.getShortestRoute(fromLocationId, toLocationId);
     }
 

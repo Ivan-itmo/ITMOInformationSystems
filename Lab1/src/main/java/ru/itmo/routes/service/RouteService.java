@@ -190,9 +190,7 @@ public class RouteService {
         Coordinates coordinates = createCoordinates(request.coordinates());
         entityManager.persist(coordinates);
         entityManager.flush();
-        Number id = (Number) entityManager.createNativeQuery(
-                        "select add_route_between_locations(:name, :coordsId, :fromId, :toId, :distance, :rating)"
-                )
+        Number id = (Number) entityManager.createNativeQuery("select add_route_between_locations(:name, :coordsId, :fromId, :toId, :distance, :rating)")
                 .setParameter("name", request.name().trim())
                 .setParameter("coordsId", coordinates.getId())
                 .setParameter("fromId", request.fromLocationId())

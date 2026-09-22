@@ -168,9 +168,9 @@
             <select id="pageSize"><option>5</option><option selected>10</option><option>20</option></select>
             <input id="routeIdInput" type="number" min="1" placeholder="ID">
             <button id="findRouteById" class="secondary">Найти</button>
-            <button id="prevPage" class="secondary">← Назад</button>
+            <button id="prevPage" class="secondary"><- Назад</button>
             <span id="pageInfo"></span>
-            <button id="nextPage" class="secondary">Вперед →</button>
+            <button id="nextPage" class="secondary">Вперед -></button>
             <span id="routesStatus" style="margin-left: auto;"></span>
         </div>
         <table>
@@ -334,7 +334,7 @@ async function loadRoutes() {
             <td>${route.distance}</td>
             <td>${route.rating}</td>
             <td>
-                <button class="table-btn secondary" onclick="editRoute(${route.id})">Изм.</button>
+                <button class="table-btn secondary" onclick="editRoute(${route.id})">Изменить</button>
                 <button class="table-btn secondary" onclick="showRoute(${route.id})">Инфо</button>
                 <button class="table-btn danger" onclick="deleteRoute(${route.id})">Удалить</button>
             </td>
