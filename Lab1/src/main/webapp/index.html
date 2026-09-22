@@ -521,14 +521,15 @@ document.querySelector('#shortestRoute').addEventListener('click', async () => {
 
 document.querySelector('#functionRouteForm').addEventListener('submit', async event => {
     event.preventDefault();
-    if (!hasPositiveDistance(event.currentTarget)) {
+    const form = event.currentTarget;
+    if (!hasPositiveDistance(form)) {
         showResult({ error: 'Дистанция должна быть больше 0' });
-        event.currentTarget.elements.distance.focus();
+        form.elements.distance.focus();
         return;
     }
     try {
-        const route = await request('/operations/add-between-locations', { method: 'POST', body: JSON.stringify(routePayload(event.currentTarget)) });
-        event.currentTarget.reset();
+        const route = await request('/operations/add-between-locations', { method: 'POST', body: JSON.stringify(routePayload(form)) });
+        form.reset();
         showResult(route);
         await loadRoutes();
     } catch (error) { showResult({ error: error.message }); }

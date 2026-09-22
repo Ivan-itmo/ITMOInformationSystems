@@ -28,13 +28,11 @@ CREATE TABLE IF NOT EXISTS route (
     rating DOUBLE PRECISION NOT NULL CHECK (rating > 0)
 );
 
--- Эти команды нужны только если таблицы уже существовали с другими типами
 ALTER TABLE coordinates ALTER COLUMN y TYPE DOUBLE PRECISION USING y::DOUBLE PRECISION;
 ALTER TABLE location ALTER COLUMN x TYPE DOUBLE PRECISION USING x::DOUBLE PRECISION;
 ALTER TABLE location ALTER COLUMN y TYPE DOUBLE PRECISION USING y::DOUBLE PRECISION;
 ALTER TABLE location ALTER COLUMN z TYPE DOUBLE PRECISION USING z::DOUBLE PRECISION;
 
--- Обновить ограничение и в таблице, созданной до изменения порога.
 ALTER TABLE route
     DROP CONSTRAINT IF EXISTS route_distance_check,
     ADD CONSTRAINT route_distance_check CHECK (distance > 0);

@@ -48,14 +48,8 @@ public class RouteService {
         String normalizedFilter = filter == null ? "" : filter.trim().toLowerCase();
 
         String where = normalizedFilter.isBlank() ? "" : " where lower(r.name) like :filter";
-        TypedQuery<Route> query = entityManager.createQuery(
-                "select r from Route r" + where + " order by r." + orderField + " " + orderDirection,
-                Route.class
-        );
-        TypedQuery<Long> countQuery = entityManager.createQuery(
-                "select count(r) from Route r" + where,
-                Long.class
-        );
+        TypedQuery<Route> query = entityManager.createQuery("select r from Route r" + where + " order by r." + orderField + " " + orderDirection, Route.class);
+        TypedQuery<Long> countQuery = entityManager.createQuery("select count(r) from Route r" + where, Long.class);
         if (!normalizedFilter.isBlank()) {
             String pattern = "%" + normalizedFilter + "%";
             query.setParameter("filter", pattern);
