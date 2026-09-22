@@ -1,6 +1,7 @@
 package ru.itmo.routes.api;
 
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 import java.util.Map;
@@ -20,6 +21,14 @@ public class ErrorMapper implements ExceptionMapper<RuntimeException> {
         if (exception instanceof NotFoundException) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(Map.of("message", exception.getMessage()))
+                    .build();
+        }
+        if (exception instanceof WebApplicationException webException) {
+            int status = webException.getResponse().getStatus();
+            return Response.status(status)
+                    .entity(Map.of("message", status == 400
+                            ? "Некорректные параметры запроса. Проверьте значения и формат ID: требуется целое число больше 0."
+                            : "Не удалось выполнить запрос (HTTP " + status + ")"))
                     .build();
         }
         return Response.serverError()

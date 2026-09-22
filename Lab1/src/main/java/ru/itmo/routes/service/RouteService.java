@@ -208,6 +208,9 @@ public class RouteService {
 
     @Transactional
     public RouteResponse addRouteBetweenLocations(AddRouteBetweenLocationsRequest request) {
+        if (request == null) {
+            throw new ValidationException("Данные маршрута обязательны");
+        }
         validateRoute(new RouteRequest(
                 request.name(),
                 request.coordinates(),
@@ -216,6 +219,10 @@ public class RouteService {
                 request.distance(),
                 request.rating()
         ));
+        if (request.fromLocationId() != null) {
+            findLocationEntity(request.fromLocationId());
+        }
+        findLocationEntity(request.toLocationId());
         Coordinates coordinates = createCoordinates(request.coordinates());
         entityManager.persist(coordinates);
         entityManager.flush();
@@ -284,6 +291,9 @@ public class RouteService {
         }
         if (request.toLocationId() == null) {
             throw new ValidationException("Локация назначения обязательна");
+        }
+        if (request.toLocationId() <= 0 || (request.fromLocationId() != null && request.fromLocationId() <= 0)) {
+            throw new ValidationException("ID локации должен быть целым числом больше 0");
         }
         if (request.distance() == null || !Double.isFinite(request.distance()) || request.distance() <= 0) {
             throw new ValidationException("Дистанция должна быть больше 0");
