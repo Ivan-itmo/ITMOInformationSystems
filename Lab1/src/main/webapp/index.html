@@ -200,7 +200,7 @@
             <span id="locationMessage" class="ok"></span>
         </div>
         <table>
-            <thead><tr><th>ID</th><th>X</th><th>Y</th><th>Z</th></tr></thead>
+            <thead><tr><th>ID</th><th>X</th><th>Y</th><th>Z</th><th>Действия</th></tr></thead>
             <tbody id="locationsBody"></tbody>
         </table>
     </section>
@@ -265,12 +265,12 @@
 
     <dialog id="deleteDialog">
         <form id="deleteForm" method="dialog">
-            <h2>Удаление маршрута</h2>
+            <h2 id="deleteTitle">Удаление маршрута</h2>
             <input name="id" type="hidden">
-            <p style="font-size: 14px; color: #64748b; margin: 0;">Связать зависимые маршруты с другим?</p>
-            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px;">
-                Маршрут-замена
-                <select name="replacementRouteId" style="height: 36px; border: 1px solid #cbd5e1; border-radius: 6px;"></select>
+            <p id="deleteDescription" style="font-size: 14px; color: #64748b; margin: 0;">Подтвердите удаление.</p>
+            <label id="replacementLabel" style="flex-direction: column; gap: 4px; font-size: 13px;">
+                Локация для замены
+                <select name="replacementLocationId" style="height: 36px; border: 1px solid #cbd5e1; border-radius: 6px;"></select>
             </label>
             <span id="deleteError" class="error"></span>
             <div class="row">
@@ -296,6 +296,7 @@ const detailsDialog = document.querySelector('#detailsDialog');
 const deleteDialog = document.querySelector('#deleteDialog');
 const deleteForm = document.querySelector('#deleteForm');
 let detailsRouteId = null;
+let deleteKind = 'routes';
 
 async function request(path, options = {}) {
     const response = await fetch(`${api}${path}`, {
@@ -312,7 +313,7 @@ async function request(path, options = {}) {
 async function loadLocations() {
     locations = await request('/locations');
     locationsBody.innerHTML = locations.map(location => (
-        `<tr><td>${location.id}</td><td>${location.x}</td><td>${location.y}</td><td>${location.z}</td></tr>`
+        `<tr><td>${location.id}</td><td>${location.x}</td><td>${location.y}</td><td>${location.z}</td><td><button class="table-btn danger" onclick="deleteLocation(${location.id})">Удалить</button></td></tr>`
     )).join('');
     fillLocationSelects();
 }
@@ -396,12 +397,50 @@ window.editRoute = async id => {
     routeDialog.showModal();
 };
 
-window.deleteRoute = async id => {
+window.deleteRoute = id => {
+    deleteKind = 'routes';
+    deleteForm.querySelector('button.danger').disabled = false;
     deleteForm.elements.id.value = id;
-    const options = routes.filter(r => r.id !== id).map(r => `<option value="${r.id}">#${r.id}: ${r.name}</option>`).join('');
-    deleteForm.elements.replacementRouteId.innerHTML = '<option value="">Без замены</option>' + options;
+    deleteForm.elements.replacementLocationId.required = false;
+    document.querySelector('#replacementLabel').style.display = 'none';
+    document.querySelector('#deleteTitle').textContent = `Удаление маршрута #${id}`;
+    document.querySelector('#deleteDescription').textContent = 'Удалить маршрут?';
     document.querySelector('#deleteError').textContent = '';
     deleteDialog.showModal();
+};
+
+window.deleteLocation = async id => {
+    deleteKind = 'locations';
+    deleteForm.elements.id.value = id;
+    const select = deleteForm.elements.replacementLocationId;
+    const submit = deleteForm.querySelector('button.danger');
+    select.innerHTML = '';
+    select.required = false;
+    submit.disabled = true;
+    document.querySelector('#replacementLabel').style.display = 'none';
+    document.querySelector('#deleteTitle').textContent = `Удаление локации #${id}`;
+    document.querySelector('#deleteDescription').textContent = 'Проверяем связанные маршруты…';
+    document.querySelector('#deleteError').textContent = '';
+    deleteDialog.showModal();
+    try {
+        const [allLocations, usage] = await Promise.all([request('/locations'), request(`/locations/${id}/usage`)]);
+        if (!deleteDialog.open || deleteKind !== 'locations' || Number(deleteForm.elements.id.value) !== id) return;
+        const replacements = allLocations.filter(l => l.id !== id);
+        select.add(new Option(usage.routeCount ? 'Выберите локацию' : 'Без замены', ''));
+        replacements.forEach(l => select.add(new Option(`#${l.id} (${l.x}, ${l.y}, ${l.z})`, l.id)));
+        select.required = usage.routeCount > 0;
+        document.querySelector('#replacementLabel').style.display = 'flex';
+        document.querySelector('#deleteDescription').textContent = usage.routeCount
+            ? `Связанных маршрутов: ${usage.routeCount}. Их поля From и To будут перенесены на выбранную локацию, затем исходная локация будет удалена.`
+            : 'Локация не используется маршрутами. Можно удалить без замены.';
+        if (usage.routeCount && !replacements.length) {
+            document.querySelector('#deleteError').textContent = 'Сначала создайте другую локацию для переноса связанных маршрутов.';
+        } else {
+            submit.disabled = false;
+        }
+    } catch (error) {
+        document.querySelector('#deleteError').textContent = error.message;
+    }
 };
 
 window.showRoute = async id => {
@@ -437,9 +476,10 @@ routeForm.addEventListener('submit', async event => {
 deleteForm.addEventListener('submit', async event => {
     event.preventDefault();
     const id = deleteForm.elements.id.value;
-    const replacement = deleteForm.elements.replacementRouteId.value;
+    const replacement = deleteForm.elements.replacementLocationId.value;
     try {
-        await request(`/routes/${id}`, { method: 'DELETE', body: JSON.stringify({ replacementRouteId: replacement ? Number(replacement) : null }) });
+        await request(`/${deleteKind}/${id}`, { method: 'DELETE',
+            ...(deleteKind === 'locations' ? { body: JSON.stringify({ replacementLocationId: replacement ? Number(replacement) : null }) } : {}) });
         deleteDialog.close();
         await refreshAll();
     } catch (error) { document.querySelector('#deleteError').textContent = error.message; }

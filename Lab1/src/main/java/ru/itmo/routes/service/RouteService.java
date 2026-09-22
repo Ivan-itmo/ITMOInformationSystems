@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import ru.itmo.routes.dto.AddRouteBetweenLocationsRequest;
 import ru.itmo.routes.dto.CoordinatesDto;
-import ru.itmo.routes.dto.DeleteRouteRequest;
+import ru.itmo.routes.dto.DeleteLocationRequest;
 import ru.itmo.routes.dto.LocationDto;
 import ru.itmo.routes.dto.LocationRequest;
 import ru.itmo.routes.dto.Mapper;
@@ -115,21 +115,57 @@ public class RouteService {
     }
 
     @Transactional
-    public void deleteRoute(long id, DeleteRouteRequest request) {
-        Route route = findRouteEntity(id);
-        if (request != null && request.replacementRouteId() != null) {
-            Route replacement = findRouteEntity(request.replacementRouteId());
-            entityManager.createQuery("update Route r set r.from = :replacementFrom where r.from = :removedFrom")
-                    .setParameter("replacementFrom", replacement.getFrom())
-                    .setParameter("removedFrom", route.getFrom())
+    public void deleteRoute(long id) {
+        entityManager.remove(findRouteEntity(id));
+        notifyRoutesAfterCommit();
+    }
+
+    public long countLocationRoutes(long id) {
+        return countLocationRoutes(findLocationEntity(id));
+    }
+
+    private long countLocationRoutes(Location location) {
+        return entityManager.createQuery(
+                "select count(r) from Route r where r.from = :location or r.to = :location", Long.class)
+                .setParameter("location", location)
+                .getSingleResult();
+    }
+
+    @Transactional
+    public void deleteLocation(long id, DeleteLocationRequest request) {
+        // Block concurrent foreign-key references until reassignment and deletion commit.
+        List<?> lockedIds = entityManager.createNativeQuery(
+                "select id from {h-schema}location where id = :id for update")
+                .setParameter("id", id)
+                .getResultList();
+        if (lockedIds.isEmpty()) {
+            throw new NotFoundException("Локация с id " + id + " не найдена");
+        }
+        Location location = findLocationEntity(id);
+        Long replacementId = request == null ? null : request.replacementLocationId();
+        if (replacementId != null && replacementId == id) {
+            throw new ValidationException("Выберите другую локацию для замены");
+        }
+        Location replacement = replacementId == null ? null : findLocationEntity(replacementId);
+        if (countLocationRoutes(location) > 0 && replacement == null) {
+            throw new ValidationException("Локация используется маршрутами. Выберите локацию для замены");
+        }
+        if (replacement != null) {
+            entityManager.createQuery("update Route r set r.from = :replacement where r.from = :location")
+                    .setParameter("replacement", replacement)
+                    .setParameter("location", location)
                     .executeUpdate();
-            entityManager.createQuery("update Route r set r.to = :replacementTo where r.to = :removedTo")
-                    .setParameter("replacementTo", replacement.getTo())
-                    .setParameter("removedTo", route.getTo())
+            entityManager.createQuery("update Route r set r.to = :replacement where r.to = :location")
+                    .setParameter("replacement", replacement)
+                    .setParameter("location", location)
                     .executeUpdate();
         }
-        entityManager.remove(route);
-        notifyRoutesAfterCommit();
+        entityManager.remove(location);
+        entityManager.flush();
+        notifyAfterCommit(() -> {
+            changeNotifier.locationsChanged();
+            changeNotifier.routesChanged();
+        });
     }
 
     public double getAverageRating() {

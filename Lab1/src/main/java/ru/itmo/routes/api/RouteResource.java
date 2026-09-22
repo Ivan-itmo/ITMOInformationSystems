@@ -15,7 +15,7 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.Map;
 import ru.itmo.routes.dto.AddRouteBetweenLocationsRequest;
-import ru.itmo.routes.dto.DeleteRouteRequest;
+import ru.itmo.routes.dto.DeleteLocationRequest;
 import ru.itmo.routes.dto.LocationDto;
 import ru.itmo.routes.dto.LocationRequest;
 import ru.itmo.routes.dto.PageResponse;
@@ -62,14 +62,26 @@ public class RouteResource {
 
     @DELETE
     @Path("routes/{id}")
-    public void deleteRoute(@PathParam("id") long id, DeleteRouteRequest request) {
-        routeService.deleteRoute(id, request);
+    public void deleteRoute(@PathParam("id") long id) {
+        routeService.deleteRoute(id);
     }
 
     @GET
     @Path("locations")
     public List<LocationDto> findLocations() {
         return routeService.findLocations();
+    }
+
+    @GET
+    @Path("locations/{id}/usage")
+    public Map<String, Long> locationUsage(@PathParam("id") long id) {
+        return Map.of("routeCount", routeService.countLocationRoutes(id));
+    }
+
+    @DELETE
+    @Path("locations/{id}")
+    public void deleteLocation(@PathParam("id") long id, DeleteLocationRequest request) {
+        routeService.deleteLocation(id, request);
     }
 
     @POST
