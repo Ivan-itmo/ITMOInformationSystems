@@ -1,0 +1,79 @@
+    <section id="routesView">
+        <div class="toolbar">
+            <button id="newRouteButton">+ Создать</button>
+            <input id="filterInput" type="text" placeholder="Фильтр по названию">
+            <select id="pageSize"><option>5</option><option selected>10</option><option>20</option></select>
+            <input id="routeIdInput" type="number" min="1" placeholder="ID">
+            <button id="findRouteById" class="secondary">Найти</button>
+            <button id="prevPage" class="secondary"><- Назад</button>
+            <span id="pageInfo"></span>
+            <button id="nextPage" class="secondary">Вперед -></button>
+            <span id="routesStatus" style="margin-left: auto;"></span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th data-sort="id">ID</th>
+                    <th data-sort="name">Название</th>
+                    <th>Координаты</th>
+                    <th data-sort="creationDate">Создан</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th data-sort="distance">Distance</th>
+                    <th data-sort="rating">Rating</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody id="routesBody"></tbody>
+        </table>
+    </section>
+
+    <template id="routeRowTemplate">
+        <tr>
+            <td data-field="id"></td>
+            <td data-field="name"></td>
+            <td data-field="coordinates"></td>
+            <td data-field="creationDate"></td>
+            <td data-field="from"></td>
+            <td data-field="to"></td>
+            <td data-field="distance"></td>
+            <td data-field="rating"></td>
+            <td>
+                <button class="table-btn secondary" data-action="edit">Изменить</button>
+                <button class="table-btn secondary" data-action="details">Инфо</button>
+                <button class="table-btn danger" data-action="delete">Удалить</button>
+            </td>
+        </tr>
+    </template>
+
+    <dialog id="routeDialog">
+        <form id="routeForm" novalidate>
+            <h2 id="dialogTitle">Маршрут</h2>
+            <input name="id" type="hidden">
+            <div class="dialog-grid">
+                <label>Название<input name="name" required maxlength="255"></label>
+                <label>Координата X<input name="coordX" type="number" step="any" required></label>
+                <label>Координата Y<input name="coordY" type="number" step="any" required></label>
+                <label>From<select name="fromLocationId"></select></label>
+                <label>To<select name="toLocationId" required></select></label>
+                <label>Distance<input name="distance" type="number" step="any" min="0" required></label>
+                <label>Rating<input name="rating" type="number" step="1" min="1" required></label>
+            </div>
+            <span id="routeError" class="error"></span>
+            <div class="row">
+                <button type="button" class="secondary" data-close="routeDialog">Отмена</button>
+                <button id="saveRouteButton">Сохранить</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="detailsDialog">
+        <form method="dialog">
+            <h2>Информация о маршруте</h2>
+            <div id="routeDetails" class="result"></div>
+            <div class="row">
+                <button type="button" class="secondary" data-close="detailsDialog">Закрыть</button>
+                <button type="button" id="editFromDetails">Изменить</button>
+            </div>
+        </form>
+    </dialog>

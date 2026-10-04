@@ -1,0 +1,25 @@
+    <section id="operationsView" class="hidden">
+        <h2>Операции</h2>
+        <div class="toolbar">
+            <button id="avgRating">Средний rating</button>
+            <input id="belowRating" type="number" min="1" step="1" required value="10" placeholder="Рейтинг <">
+            <button id="countBelow">Посчитать</button>
+            <button id="uniqueRatings">Уникальные rating</button>
+            <input id="shortestFrom" type="number" min="1" step="1" required placeholder="From ID">
+            <input id="shortestTo" type="number" min="1" step="1" required placeholder="To ID">
+            <button id="shortestRoute">Самый короткий</button>
+        </div>
+
+        <h3>Добавить маршрут через функцию БД</h3>
+        <form id="functionRouteForm" class="toolbar" novalidate>
+            <input name="name" placeholder="Название" required maxlength="255" style="flex: 1.5;">
+            <input name="coordX" type="number" step="any" placeholder="X" required style="width: 80px;">
+            <input name="coordY" type="number" step="any" placeholder="Y" required style="width: 80px;">
+            <select name="fromLocationId" style="width: 120px;"><option value="">From</option></select>
+            <select name="toLocationId" required style="width: 120px;"><option value="">To</option></select>
+            <input name="distance" type="number" step="any" min="0" placeholder="Dist" required style="width: 80px;">
+            <input name="rating" type="number" step="1" min="1" placeholder="Rate" required style="width: 80px;">
+            <button type="submit">Добавить через БД</button>
+        </form>
+        <div id="operationResult" class="result" role="status"></div>
+    </section>

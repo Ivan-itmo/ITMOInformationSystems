@@ -12,7 +12,6 @@ import ru.itmo.routes.service.ValidationException;
 public class ErrorMapper implements ExceptionMapper<RuntimeException> {
     @Override
     public Response toResponse(RuntimeException exception) {
-        exception.printStackTrace();
         if (exception instanceof ValidationException) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Map.of("message", exception.getMessage()))
@@ -27,7 +26,7 @@ public class ErrorMapper implements ExceptionMapper<RuntimeException> {
             int status = webException.getResponse().getStatus();
             return Response.status(status)
                     .entity(Map.of("message", status == 400
-                            ? "Некорректные параметры запроса. Проверьте значения и формат ID: требуется целое число больше 0."
+                            ? "Некорректные параметры запроса"
                             : "Не удалось выполнить запрос (HTTP " + status + ")"))
                     .build();
         }

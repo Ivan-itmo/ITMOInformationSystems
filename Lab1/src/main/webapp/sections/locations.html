@@ -1,0 +1,30 @@
+    <section id="locationsView" class="hidden">
+        <form id="locationForm" class="toolbar" novalidate>
+            <input id="locX" type="number" step="any" placeholder="Координата X" required>
+            <input id="locY" type="number" step="any" placeholder="Координата Y" required>
+            <input id="locZ" type="number" step="any" placeholder="Координата Z" required>
+            <button id="addLocationBtn" type="submit">Добавить локацию</button>
+            <span id="locationMessage" class="ok"></span>
+        </form>
+        <table>
+            <thead><tr><th>ID</th><th>X</th><th>Y</th><th>Z</th><th>Действия</th></tr></thead>
+            <tbody id="locationsBody"></tbody>
+        </table>
+    </section>
+
+    <dialog id="deleteDialog">
+        <form id="deleteForm" novalidate>
+            <h2 id="deleteTitle">Удаление маршрута</h2>
+            <input name="id" type="hidden">
+            <p id="deleteDescription" style="font-size: 14px; color: #64748b; margin: 0;">Подтвердите удаление.</p>
+            <label id="replacementLabel" style="flex-direction: column; gap: 4px; font-size: 13px;">
+                Локация для замены
+                <select name="replacementLocationId" style="height: 36px; border: 1px solid #cbd5e1; border-radius: 6px;"></select>
+            </label>
+            <span id="deleteError" class="error"></span>
+            <div class="row">
+                <button type="button" class="secondary" data-close="deleteDialog">Отмена</button>
+                <button class="danger">Удалить</button>
+            </div>
+        </form>
+    </dialog>
