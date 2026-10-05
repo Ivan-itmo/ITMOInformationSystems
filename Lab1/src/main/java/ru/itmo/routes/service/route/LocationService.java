@@ -71,7 +71,7 @@ public class LocationService {
                     .setParameter("replacement", replacement)
                     .setParameter("location", location)
                     .executeUpdate();
-            entityManager.createQuery("update Route r set r.to = :replacement where r.from = :location")
+            entityManager.createQuery("update Route r set r.to = :replacement where r.to = :location")
                     .setParameter("replacement", replacement)
                     .setParameter("location", location)
                     .executeUpdate();

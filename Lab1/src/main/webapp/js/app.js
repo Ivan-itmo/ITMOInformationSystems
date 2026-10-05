@@ -14,7 +14,9 @@ async function refreshAll() {
 }
 
 function connectUpdates() {
-    const socket = new WebSocket(`ws://${location.host}/updates`);
+    const url = new URL('updates', document.baseURI);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    const socket = new WebSocket(url);
     socket.addEventListener('message', () => refreshAll().catch(showError));
     socket.addEventListener('close', () => setTimeout(connectUpdates, 2000));
 }

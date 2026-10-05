@@ -11,9 +11,15 @@ export async function loadLocations() {
 
 export function initLocations() {
     locationsBody = document.querySelector('#locationsBody');
-    locationsBody.addEventListener('click', event => {
+    locationsBody.addEventListener('click', async event => {
         const button = event.target.closest('button[data-id]');
-        if (button) deleteLocation(Number(button.dataset.id));
+        if (!button) return;
+        try {
+            await deleteLocation(button.dataset.id);
+        } catch (error) {
+            document.querySelector('#locationMessage').className = 'error';
+            document.querySelector('#locationMessage').textContent = error.message;
+        }
     });
     const form = document.querySelector('#locationForm');
     const message = document.querySelector('#locationMessage');

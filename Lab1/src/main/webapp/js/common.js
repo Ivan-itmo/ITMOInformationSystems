@@ -1,3 +1,5 @@
+import { clearValidation, positiveInteger, locationId, resourceId } from './validation.js';
+
 const api = 'api';
 export const state = { locations: [] };
 let refresh = async () => {};
@@ -6,6 +8,7 @@ export async function refreshAll() { await refresh(); }
 let deleteKind = 'routes';
 let deleteDialog;
 let deleteForm;
+let replacementLocations = [];
 export function initCommon() {
     deleteDialog = document.querySelector('#deleteDialog');
     deleteForm = document.querySelector('#deleteForm');
@@ -14,23 +17,19 @@ export function initCommon() {
     });
     deleteForm.addEventListener('submit', async event => {
     event.preventDefault();
-    const id = deleteForm.elements.id.value;
-    const replacement = deleteForm.elements.replacementLocationId.value;
-    
     try {
+        clearValidation(deleteForm);
+        const id = positiveInteger(deleteForm.elements.id, 'ID удаляемого объекта');
+        const select = deleteForm.elements.replacementLocationId;
+        const replacement = deleteKind === 'locations' ? locationId(select, 'Локация для замены', {
+            required: select.required, locations: replacementLocations, excludeId: id
+        }) : null;
         if (!deleteForm.reportValidity()) return;
-        
-        if (deleteKind === 'locations' && replacement) {
-            const replacementId = Number(replacement);
-            if (!Number.isSafeInteger(replacementId) || replacementId <= 0 || replacement === id) {
-                throw new Error('Выберите другую локацию с целым ID больше 0.');
-            }
-        }
         
         const options = { method: 'DELETE' };
         if (deleteKind === 'locations') {
             options.body = JSON.stringify({ 
-                replacementLocationId: replacement ? Number(replacement) : null 
+                replacementLocationId: replacement
             });
         }
         
@@ -88,6 +87,7 @@ export function fillLocationSelects() {
 
 export const deleteRoute = async id => {
     try {
+        id = resourceId(id, 'ID маршрута');
         await request(`/routes/${id}`, { method: 'DELETE' });
         await refreshAll();
     } catch (error) {
@@ -96,7 +96,10 @@ export const deleteRoute = async id => {
 };
 
 export const deleteLocation = async id => {
+    id = resourceId(id, 'ID локации');
     deleteKind = 'locations';
+    replacementLocations = [];
+    clearValidation(deleteForm);
     deleteForm.elements.id.value = id;
     const select = deleteForm.elements.replacementLocationId;
     const submit = deleteForm.querySelector('button.danger');
@@ -119,6 +122,7 @@ export const deleteLocation = async id => {
         if (!deleteDialog.open) return;
         
         const others = locations.filter(l => l.id !== id);
+        replacementLocations = others;
         select.add(new Option(usage.routeCount ? 'Выберите' : 'Без замены', ''));
         others.forEach(l => select.add(new Option(`#${l.id}`, l.id)));
         select.required = usage.routeCount > 0;

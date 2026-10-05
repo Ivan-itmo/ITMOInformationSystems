@@ -1,5 +1,5 @@
 import { request, formatLocation, formatDateTime, renderRouteDetails, deleteRoute } from './common.js';
-import { routePayload, validateRoute, positiveInteger, clearValidation} from './validation.js';
+import { routePayload, positiveInteger, resourceId, clearValidation } from './validation.js';
 let page = 0;
 let sortBy = 'id';
 let direction = 'asc';
@@ -7,7 +7,8 @@ let routes = [];
 let detailsRouteId = null;
 let routesBody, routeRowTemplate, routeDialog, routeForm, detailsDialog;
 export async function loadRoutes() {
-    const size = Number(document.querySelector('#pageSize').value); 
+    const size = positiveInteger(document.querySelector('#pageSize'), 'Размер страницы');
+    if (![5, 10, 20].includes(size)) throw new Error('Выберите размер страницы: 5, 10 или 20.');
     const filter = encodeURIComponent(document.querySelector('#filterInput').value);
     const data = await request(`/routes?page=${page}&size=${size}&filter=${filter}&sortBy=${sortBy}&direction=${direction}`);
     routes = data.items;
@@ -48,6 +49,7 @@ export async function loadRoutes() {
 }
 
 const editRoute = async id => {
+    id = resourceId(id, 'ID маршрута');
     const route = routes.find(item => item.id === id) ?? await request(`/routes/${id}`);
     clearValidation(routeForm);
     routeForm.elements.id.value = route.id;
@@ -64,6 +66,7 @@ const editRoute = async id => {
 };
 
 const showRoute = async id => {
+    id = resourceId(id, 'ID маршрута');
     const route = await request(`/routes/${id}`);
     detailsRouteId = route.id;
     renderRouteDetails(document.querySelector('#routeDetails'), route);
@@ -79,8 +82,8 @@ export function initRoutes() {
     routesBody.addEventListener('click', async event => {
         const button = event.target.closest('button[data-action]');
         if (!button) return;
-        const id = Number(button.dataset.id);
         try {
+            const id = resourceId(button.dataset.id, 'ID маршрута');
             if (button.dataset.action === 'edit') await editRoute(id);
             if (button.dataset.action === 'details') await showRoute(id);
             if (button.dataset.action === 'delete') deleteRoute(id);
@@ -97,9 +100,8 @@ export function initRoutes() {
 
     routeForm.addEventListener('submit', async event => {
         event.preventDefault();
-        const id = routeForm.elements.id.value;
         try {
-            validateRoute(routeForm);
+            const id = routeForm.elements.id.value === '' ? null : positiveInteger(routeForm.elements.id, 'ID маршрута');
             await request(id ? `/routes/${id}` : '/routes', { method: id ? 'PUT' : 'POST', body: JSON.stringify(routePayload(routeForm)) });
             routeDialog.close();
             await loadRoutes().catch(showError);
@@ -118,6 +120,7 @@ export function initRoutes() {
     document.querySelectorAll('th[data-sort]').forEach(th => th.addEventListener('click', () => {
         direction = sortBy === th.dataset.sort && direction === 'asc' ? 'desc' : 'asc';
         sortBy = th.dataset.sort;
+        page = 0;
         loadRoutes().catch(showError);
     }));
 

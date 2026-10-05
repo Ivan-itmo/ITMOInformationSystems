@@ -1,5 +1,5 @@
-import { request, state, renderRouteDetails } from './common.js';
-import { routePayload, validateRoute, positiveInteger, clearValidation } from './validation.js';
+import { request, renderRouteDetails } from './common.js';
+import { routePayload, positiveInteger, locationId, clearValidation } from './validation.js';
 import { loadRoutes } from './routes.js';
 export function initOperations() {
     document.querySelector('#avgRating').addEventListener('click', () => showOperation('/operations/avg-rating', 'Средний рейтинг'));
@@ -14,10 +14,7 @@ export function initOperations() {
         const fromInput = document.querySelector('#shortestFrom');
         const toInput = document.querySelector('#shortestTo');
         try {
-            const ids = [positiveInteger(fromInput, 'From ID'), positiveInteger(toInput, 'To ID')];
-            for (const id of ids) {
-                if (!state.locations.some(location => location.id === id)) throw new Error(`Локация с ID ${id} не найдена.`);
-            }
+            const ids = [locationId(fromInput, 'From ID'), locationId(toInput, 'To ID')];
             showResult(await request(`/operations/shortest-route?fromLocationId=${ids[0]}&toLocationId=${ids[1]}`), 'Самый короткий маршрут');
         } catch (error) {
             showResult({ error: error.message });
@@ -28,7 +25,6 @@ export function initOperations() {
         event.preventDefault();
         const form = event.currentTarget;
         try {
-            validateRoute(form);
             const route = await request('/operations/add-between-locations', { method: 'POST', body: JSON.stringify(routePayload(form)) });
             form.reset();
             clearValidation(form);
@@ -60,4 +56,3 @@ function showResult(value, label = 'Результат') {
         container.textContent = `${label}: ${text}`;
     }
 }
-
