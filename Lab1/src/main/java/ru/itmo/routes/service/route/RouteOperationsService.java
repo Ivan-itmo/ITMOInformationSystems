@@ -21,13 +21,10 @@ import ru.itmo.routes.service.RouteValidator;
 public class RouteOperationsService {
     @PersistenceContext(unitName = "routesPU")
     private EntityManager entityManager;
-
     @Inject
     private RouteValidator validator;
-
     @Inject
     private RouteEntityManager entities;
-
     @Inject
     private RouteTransactionNotifier notifications;
 

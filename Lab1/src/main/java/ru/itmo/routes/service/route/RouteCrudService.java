@@ -19,27 +19,23 @@ import ru.itmo.routes.service.RouteValidator;
 @ApplicationScoped
 public class RouteCrudService {
     private static final Map<String, String> sortColomns = Map.of("id", "r.id", "name", "r.name", "creationDate", "r.creationDate", "distance", "r.distance", "rating", "r.rating", "from", "origin.id", "to", "destination.id");
-
     @PersistenceContext(unitName = "routesPU")
     private EntityManager entityManager;
-
     @Inject
     private RouteValidator validator;
-
     @Inject
     private RouteEntityManager entities;
-
     @Inject
     private RouteTransactionNotifier notifications;
 
     public PageResponse<RouteResponse> findRoutes(int page, int size, String filter, String sortBy, String direction) {
-        int safePage = Math.max(page, 0);
-        int safeSize = Math.min(Math.max(size, 1), 100);
+        int normalizationOfPage = Math.max(page, 0);
+        int normalizationOfPageSize = Math.min(Math.max(size, 1), 100);
         String orderField = sortBy == null ? "r.id" : sortColomns.getOrDefault(sortBy, "r.id");
         String orderDirection = "desc".equalsIgnoreCase(direction) ? "desc" : "asc";
         String normalizedFilter = filter == null ? "" : filter.trim().toLowerCase();
 
-        String where = normalizedFilter.isBlank() ? "" : " where lower(r.name) like :filter";
+        String where = normalizedFilter.isEmpty() ? "" : " where lower(r.name) like :filter";
         TypedQuery<Route> query = entityManager.createQuery("select r from Route r left join r.from origin left join r.to destination" + where + " order by " + orderField + " " + orderDirection + ", r.id asc", Route.class);
         TypedQuery<Long> countQuery = entityManager.createQuery("select count(r) from Route r" + where, Long.class);
         if (!normalizedFilter.isBlank()) {
@@ -49,13 +45,13 @@ public class RouteCrudService {
         }
 
         List<RouteResponse> items = query
-                .setFirstResult(safePage * safeSize)
-                .setMaxResults(safeSize)
+                .setFirstResult(normalizationOfPage * normalizationOfPageSize)
+                .setMaxResults(normalizationOfPageSize)
                 .getResultStream()
                 .map(Mapper::toDto)
                 .toList();
 
-        return new PageResponse<>(items, countQuery.getSingleResult(), safePage, safeSize);
+        return new PageResponse<>(items, countQuery.getSingleResult(), normalizationOfPage, normalizationOfPageSize);
     }
 
     public RouteResponse findRoute(long id) {
