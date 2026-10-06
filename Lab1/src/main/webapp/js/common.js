@@ -1,4 +1,4 @@
-import { clearValidation, positiveInteger, locationId, resourceId } from './validation.js';
+import { clearValidation, positiveInteger, locationId, resourceId, formField } from './validation.js';
 
 const api = 'api';
 export const state = { locations: [] };
@@ -19,8 +19,8 @@ export function initCommon() {
     event.preventDefault();
     try {
         clearValidation(deleteForm);
-        const id = positiveInteger(deleteForm.elements.id, 'ID удаляемого объекта');
-        const select = deleteForm.elements.replacementLocationId;
+        const id = positiveInteger(formField(deleteForm, 'id'), 'ID удаляемого объекта');
+        const select = formField(deleteForm, 'replacementLocationId');
         const replacement = deleteKind === 'locations' ? locationId(select, 'Локация для замены', {
             required: select.required, locations: replacementLocations, excludeId: id
         }) : null;

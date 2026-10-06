@@ -1,5 +1,5 @@
 import { request, formatLocation, formatDateTime, renderRouteDetails, deleteRoute } from './common.js';
-import { routePayload, positiveInteger, resourceId, clearValidation } from './validation.js';
+import { routePayload, positiveInteger, resourceId, clearValidation, formField } from './validation.js';
 let page = 0;
 let sortBy = 'id';
 let direction = 'asc';
@@ -100,7 +100,8 @@ export function initRoutes() {
     routeForm.addEventListener('submit', async event => {
         event.preventDefault();
         try {
-            const id = routeForm.elements.id.value === '' ? null : positiveInteger(routeForm.elements.id, 'ID маршрута');
+            const idInput = formField(routeForm, 'id');
+            const id = idInput.value === '' ? null : positiveInteger(idInput, 'ID маршрута');
             await request(id ? `/routes/${id}` : '/routes', { method: id ? 'PUT' : 'POST', body: JSON.stringify(routePayload(routeForm)) });
             routeDialog.close();
             await loadRoutes().catch(showError);
