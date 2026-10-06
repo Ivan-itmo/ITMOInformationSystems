@@ -12,6 +12,8 @@ export async function loadRoutes() {
     const filter = encodeURIComponent(document.querySelector('#filterInput').value);
     const data = await request(`/routes?page=${page}&size=${size}&filter=${filter}&sortBy=${sortBy}&direction=${direction}`);
     routes = data.items;
+    page = data.page;
+    const totalPages = Math.ceil(data.total / data.size) || 1;
     
     const rows = routes.map(route => {
         const row = routeRowTemplate.content.cloneNode(true);
@@ -35,17 +37,14 @@ export async function loadRoutes() {
     });
     routesBody.replaceChildren(...rows);
 
-    const totalPages = Math.ceil(data.total / size) || 1;
-    const currentPage = data.page; 
-
-    document.querySelector('#pageInfo').textContent = `Страница ${currentPage + 1} из ${totalPages}`;
+    document.querySelector('#pageInfo').textContent = `Страница ${page + 1} из ${totalPages}`;
     document.querySelector('#routesStatus').textContent = `Всего: ${data.total}`;
 
     const prevBtn = document.querySelector('#prevPage');
     const nextBtn = document.querySelector('#nextPage');
 
-    prevBtn.disabled = (currentPage === 0);
-    nextBtn.disabled = (currentPage + 1 >= totalPages);
+    prevBtn.disabled = (page === 0);
+    nextBtn.disabled = (page + 1 >= totalPages);
 }
 
 const editRoute = async id => {

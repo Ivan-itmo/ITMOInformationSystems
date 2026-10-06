@@ -29,8 +29,7 @@ public class RouteCrudService {
     private RouteTransactionNotifier notifications;
 
     public PageResponse<RouteResponse> findRoutes(int page, int size, String filter, String sortBy, String direction) {
-        int normalizationOfPage = Math.max(page, 0);
-        int normalizationOfPageSize = Math.min(Math.max(size, 1), 100);
+        int pageSize = Math.min(Math.max(size, 1), 100);
         String orderField = sortBy == null ? "r.id" : sortColomns.getOrDefault(sortBy, "r.id");
         String orderDirection = "desc".equalsIgnoreCase(direction) ? "desc" : "asc";
         String normalizedFilter = filter == null ? "" : filter.trim().toLowerCase();
@@ -44,14 +43,16 @@ public class RouteCrudService {
             countQuery.setParameter("filter", pattern);
         }
 
+        long total = countQuery.getSingleResult();
+        int lastPage = (int) Math.max(0, (total - 1) / pageSize);
+        int currentPage = Math.min(Math.max(page, 0), lastPage);
         List<RouteResponse> items = query
-                .setFirstResult(normalizationOfPage * normalizationOfPageSize)
-                .setMaxResults(normalizationOfPageSize)
+                .setFirstResult(currentPage * pageSize)
+                .setMaxResults(pageSize)
                 .getResultStream()
                 .map(Mapper::toDto)
                 .toList();
-
-        return new PageResponse<>(items, countQuery.getSingleResult(), normalizationOfPage, normalizationOfPageSize);
+        return new PageResponse<>(items, total, currentPage, pageSize);
     }
 
     public RouteResponse findRoute(long id) {

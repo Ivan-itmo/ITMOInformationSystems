@@ -50,8 +50,15 @@ export async function request(path, options = {}) {
     const response = await fetch(`${api}${path}`, fetchConfig);
     
     if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Ошибка запроса' }));
-        throw new Error(error.message);
+        switch (response.status) {
+            case 400: throw new Error('Ошибка 400: некорректные данные запроса.');
+            case 404: throw new Error('Ошибка 404: объект не найден.');
+            case 405: throw new Error('Ошибка 405: метод запроса не поддерживается.');
+            case 409: throw new Error('Ошибка 409: конфликт данных.');
+            case 500: throw new Error('Ошибка 500: внутренняя ошибка сервера.');
+            case 503: throw new Error('Ошибка 503: сервер временно недоступен.');
+            default: throw new Error(`Ошибка запроса: HTTP ${response.status}.`);
+        }
     }
     return response.status === 204 ? null : response.json();
 }

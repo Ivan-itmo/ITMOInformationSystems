@@ -5,6 +5,7 @@ import { initOperations } from './operations.js';
 import { initValidation } from './validation.js';
 
 const errorContainer = document.querySelector('#appError');
+const updateNotice = document.querySelector('#updateNotice');
 function showError(error) { errorContainer.textContent = error.message; }
 
 async function refreshAll() {
@@ -17,7 +18,9 @@ function connectUpdates() {
     const url = new URL('updates', document.baseURI);
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
     const socket = new WebSocket(url);
-    socket.addEventListener('message', () => refreshAll().catch(showError));
+    socket.addEventListener('message', () => {
+        updateNotice.hidden = false;
+    });
     socket.addEventListener('close', () => setTimeout(connectUpdates, 2000));
 }
 
