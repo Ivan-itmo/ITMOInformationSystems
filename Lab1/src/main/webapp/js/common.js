@@ -42,7 +42,8 @@ export function initCommon() {
 });
 }
 export async function request(path, options = {}) {
-    const fetchConfig = { 
+    const fetchConfig = {
+        cache: 'no-store',
         headers: { 'Content-Type': 'application/json' } 
     };
     Object.assign(fetchConfig, options);
@@ -50,14 +51,21 @@ export async function request(path, options = {}) {
     const response = await fetch(`${api}${path}`, fetchConfig);
     
     if (!response.ok) {
+        const fail = message => {
+            const error = new Error(message);
+            error.status = response.status;
+            throw error;
+        };
         switch (response.status) {
-            case 400: throw new Error('Ошибка 400: некорректные данные запроса.');
-            case 404: throw new Error('Ошибка 404: объект не найден.');
-            case 405: throw new Error('Ошибка 405: метод запроса не поддерживается.');
-            case 409: throw new Error('Ошибка 409: конфликт данных.');
-            case 500: throw new Error('Ошибка 500: внутренняя ошибка сервера.');
-            case 503: throw new Error('Ошибка 503: сервер временно недоступен.');
-            default: throw new Error(`Ошибка запроса: HTTP ${response.status}.`);
+            case 400: return fail('Ошибка 400: некорректные данные запроса.');
+            case 404: return fail('Ошибка 404: объект не найден.');
+            case 405: return fail('Ошибка 405: метод запроса не поддерживается.');
+            case 409: return fail('Ошибка 409: конфликт данных.');
+            case 415: return fail('Ошибка 415: неподдерживаемый формат тела запроса. Используйте JSON.');
+            case 422: return fail('Ошибка 422: данные запроса не прошли валидацию.');
+            case 500: return fail('Ошибка 500: внутренняя ошибка сервера.');
+            case 503: return fail('Ошибка 503: сервер временно недоступен.');
+            default: return fail(`Ошибка запроса: HTTP ${response.status}.`);
         }
     }
     return response.status === 204 ? null : response.json();
@@ -88,6 +96,9 @@ export function fillLocationSelects() {
     document.querySelectorAll('select[name="fromLocationId"], select[name="toLocationId"]').forEach(select => {
         const selected = select.value;
         select.innerHTML = opts;
+        if (selected && !state.locations.some(location => String(location.id) === selected)) {
+            select.add(new Option(`#${selected} (удалена)`, selected));
+        }
         select.value = selected;
     });
 }
@@ -98,7 +109,7 @@ export const deleteRoute = async id => {
         await request(`/routes/${id}`, { method: 'DELETE' });
         await refreshAll();
     } catch (error) {
-        document.querySelector('#routesStatus').textContent = error.message;
+        document.querySelector('#routesError').textContent = error.message;
     }
 };
 

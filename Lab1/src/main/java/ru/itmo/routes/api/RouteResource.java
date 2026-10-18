@@ -1,6 +1,8 @@
 package ru.itmo.routes.api;
 
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
@@ -22,6 +24,8 @@ import ru.itmo.routes.dto.PageResponse;
 import ru.itmo.routes.dto.RouteRequest;
 import ru.itmo.routes.dto.RouteResponse;
 import ru.itmo.routes.service.route.RouteManager;
+import ru.itmo.routes.service.NumericInputLimits;
+import ru.itmo.routes.validation.PositiveLong;
 
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
@@ -33,37 +37,39 @@ public class RouteResource {
     @GET
     @Path("routes")
     public PageResponse<RouteResponse> findRoutes(
-            @QueryParam("page") @DefaultValue("0") int page,
-            @QueryParam("size") @DefaultValue("10") int size,
+            @QueryParam("page") @DefaultValue("0") @NotBlank @Size(max = NumericInputLimits.max_length)
+            @Pattern(regexp = "[0-9]+") @DecimalMin("0") @DecimalMax("2147483647") String page,
+            @QueryParam("size") @DefaultValue("10") @NotBlank @Size(max = NumericInputLimits.max_length)
+            @Pattern(regexp = "[0-9]+") @DecimalMin("1") @DecimalMax("2147483647") String size,
             @QueryParam("filter") String filter,
             @QueryParam("sortBy") @DefaultValue("id") String sortBy,
             @QueryParam("direction") @DefaultValue("asc") String direction
     ) {
-        return routeManager.findRoutes(page, size, filter, sortBy, direction);
+        return routeManager.findRoutes(Integer.parseInt(page), Integer.parseInt(size), filter, sortBy, direction);
     }
 
     @GET
     @Path("routes/{id}")
-    public RouteResponse findRoute(@PathParam("id") long id) {
-        return routeManager.findRoute(id);
+    public RouteResponse findRoute(@PathParam("id") @PositiveLong String id) {
+        return routeManager.findRoute(Long.parseLong(id));
     }
 
     @POST
     @Path("routes")
-    public RouteResponse createRoute(RouteRequest request) {
+    public RouteResponse createRoute(@NotNull @Valid RouteRequest request) {
         return routeManager.createRoute(request);
     }
 
     @PUT
     @Path("routes/{id}")
-    public RouteResponse updateRoute(@PathParam("id") long id, RouteRequest request) {
-        return routeManager.updateRoute(id, request);
+    public RouteResponse updateRoute(@PathParam("id") @PositiveLong String id, @NotNull @Valid RouteRequest request) {
+        return routeManager.updateRoute(Long.parseLong(id), request);
     }
 
     @DELETE
     @Path("routes/{id}")
-    public void deleteRoute(@PathParam("id") long id) {
-        routeManager.deleteRoute(id);
+    public void deleteRoute(@PathParam("id") @PositiveLong String id) {
+        routeManager.deleteRoute(Long.parseLong(id));
     }
 
     @GET
@@ -74,19 +80,19 @@ public class RouteResource {
 
     @GET
     @Path("locations/{id}/usage")
-    public Map<String, Long> locationUsage(@PathParam("id") long id) {
-        return Map.of("routeCount", routeManager.countLocationRoutes(id));
+    public Map<String, Long> locationUsage(@PathParam("id") @PositiveLong String id) {
+        return Map.of("routeCount", routeManager.countLocationRoutes(Long.parseLong(id)));
     }
 
     @DELETE
     @Path("locations/{id}")
-    public void deleteLocation(@PathParam("id") long id, DeleteLocationRequest request) {
-        routeManager.deleteLocation(id, request);
+    public void deleteLocation(@PathParam("id") @PositiveLong String id, @Valid DeleteLocationRequest request) {
+        routeManager.deleteLocation(Long.parseLong(id), request);
     }
 
     @POST
     @Path("locations")
-    public LocationDto createLocation(LocationRequest request) {
+    public LocationDto createLocation(@NotNull @Valid LocationRequest request) {
         return routeManager.createLocation(request);
     }
 
@@ -98,8 +104,8 @@ public class RouteResource {
 
     @GET
     @Path("operations/count-below-rating")
-    public Map<String, Long> countRoutesBelowRating(@QueryParam("rating") long rating) {
-        return Map.of("value", routeManager.countRoutesBelowRating(rating));
+    public Map<String, Long> countRoutesBelowRating(@QueryParam("rating") @PositiveLong String rating) {
+        return Map.of("value", routeManager.countRoutesBelowRating(Long.parseLong(rating)));
     }
 
     @GET
@@ -110,13 +116,14 @@ public class RouteResource {
 
     @GET
     @Path("operations/shortest-route")
-    public RouteResponse getShortestRoute(@QueryParam("fromLocationId") long fromLocationId, @QueryParam("toLocationId") long toLocationId) {
-        return routeManager.getShortestRoute(fromLocationId, toLocationId);
+    public RouteResponse getShortestRoute(@QueryParam("fromLocationId") @PositiveLong String fromLocationId, @QueryParam("toLocationId") @PositiveLong String toLocationId) {
+        return routeManager.getShortestRoute(Long.parseLong(fromLocationId), Long.parseLong(toLocationId));
     }
 
     @POST
     @Path("operations/add-between-locations")
-    public RouteResponse addRouteBetweenLocations(AddRouteBetweenLocationsRequest request) {
+    public RouteResponse addRouteBetweenLocations(@NotNull @Valid AddRouteBetweenLocationsRequest request) {
         return routeManager.addRouteBetweenLocations(request);
     }
+
 }

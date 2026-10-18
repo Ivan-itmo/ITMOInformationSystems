@@ -22,25 +22,22 @@ public class LocationService {
     private RouteValidator validator;
     @Inject
     private RouteEntityManager entities;
-    @Inject
-    private RouteTransactionNotifier notifications;
 
     public List<LocationDto> findLocations() {
         return entityManager.createQuery("select l from Location l order by l.id", Location.class)
-                .getResultStream()
+                .getResultList()
+                .stream()
                 .map(Mapper::toDto)
                 .toList();
     }
 
     @Transactional
     public LocationDto createLocation(LocationRequest request) {
-        validator.validateLocation(request);
         Location location = new Location();
         location.setX(request.x());
         location.setY(request.y());
         location.setZ(request.z());
         entityManager.persist(location);
-        notifications.locationsChangedAfterCommit();
         return Mapper.toDto(location);
     }
 
@@ -75,6 +72,5 @@ public class LocationService {
         }
         entityManager.remove(location);
         entityManager.flush();
-        notifications.locationsChangedAfterCommit();
     }
 }

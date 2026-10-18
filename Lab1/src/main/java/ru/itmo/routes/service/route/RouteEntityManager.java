@@ -2,8 +2,9 @@ package ru.itmo.routes.service.route;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
-import ru.itmo.routes.dto.CoordinatesDto;
+import ru.itmo.routes.dto.CoordinatesRequest;
 import ru.itmo.routes.model.Coordinates;
 import ru.itmo.routes.model.Location;
 import ru.itmo.routes.model.Route;
@@ -30,7 +31,15 @@ public class RouteEntityManager {
         return location;
     }
 
-    public Coordinates createCoordinates(CoordinatesDto dto) {
+    public Route findRouteEntityForUpdate(long id) {
+        Route route = entityManager.find(Route.class, id, LockModeType.PESSIMISTIC_WRITE);
+        if (route == null) {
+            throw new NotFoundException("Маршрут с id " + id + " удалён");
+        }
+        return route;
+    }
+
+    public Coordinates createCoordinates(CoordinatesRequest dto) {
         Coordinates coordinates = new Coordinates();
         coordinates.setX(dto.x());
         coordinates.setY(dto.y());

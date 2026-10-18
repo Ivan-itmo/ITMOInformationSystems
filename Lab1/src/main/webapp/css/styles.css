@@ -1,4 +1,5 @@
 * { box-sizing: border-box; }
+html { scrollbar-gutter: stable; }
 body { margin: 0; font-family: Arial, sans-serif; color: #1f2933; background: #f5f7fa; padding: 20px; }
 
 nav { display: flex; gap: 8px; margin-bottom: 20px; }
@@ -54,6 +55,10 @@ h3 { margin: 20px 0 10px 0; font-size: 16px; font-weight: 600; color: #475569; }
 .toolbar span.error { color: #b91c1c; }
 
 table { width: 100%; border-collapse: collapse; background: white; font-size: 14px; }
+.routes-table-container { overflow-x: auto; }
+.routes-table { table-layout: fixed; min-width: 1100px; }
+.routes-table th, .routes-table td { overflow-wrap: anywhere; }
+.routes-table .table-btn { margin-bottom: 4px; }
 th, td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: left; vertical-align: middle; }
 th { background: #f8fafc; font-weight: 600; cursor: pointer; white-space: nowrap; }
 th:hover { background: #e2e8f0; }
@@ -151,5 +156,7 @@ dialog::backdrop { background: rgba(15, 23, 42, 0.5); }
 .dialog-grid input, .dialog-grid select { height: 36px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0 10px; font-size: 14px; }
 .row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px; }
 .error { color: #b91c1c; }
+#routesError { margin: 12px 0 0; overflow-wrap: anywhere; }
+#routesError:empty { display: none; }
 .update-notice { padding: 12px; color: #92400e; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; }
 [aria-invalid="true"] { border-color: #b91c1c !important; }

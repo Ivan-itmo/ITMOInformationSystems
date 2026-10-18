@@ -10,7 +10,19 @@
             <button id="nextPage" class="secondary">Вперед -></button>
             <span id="routesStatus" style="margin-left: auto;"></span>
         </div>
-        <table>
+        <div class="routes-table-container">
+        <table class="routes-table">
+            <colgroup>
+                <col style="width: 6%">
+                <col style="width: 17%">
+                <col style="width: 12%">
+                <col style="width: 16%">
+                <col style="width: 7%">
+                <col style="width: 7%">
+                <col style="width: 9%">
+                <col style="width: 7%">
+                <col style="width: 19%">
+            </colgroup>
             <thead>
                 <tr>
                     <th data-sort="id">ID</th>
@@ -26,6 +38,8 @@
             </thead>
             <tbody id="routesBody"></tbody>
         </table>
+        </div>
+        <p id="routesError" class="error" role="alert"></p>
     </section>
 
     <template id="routeRowTemplate">
@@ -59,9 +73,10 @@
                 <label>Distance<input name="distance" type="number" step="any" min="0" required></label>
                 <label>Rating<input name="rating" type="number" step="1" min="1" required></label>
             </div>
-            <span id="routeError" class="error"></span>
+            <span id="routeError" class="error" role="alert"></span>
             <div class="row">
                 <button type="button" class="secondary" data-close="routeDialog">Отмена</button>
+                <button type="button" id="reloadRouteButton" class="secondary" hidden>Загрузить актуальные данные</button>
                 <button id="saveRouteButton">Сохранить</button>
             </div>
         </form>

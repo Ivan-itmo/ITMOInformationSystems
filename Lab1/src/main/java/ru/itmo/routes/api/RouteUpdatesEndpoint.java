@@ -34,8 +34,10 @@ public class RouteUpdatesEndpoint {
         activeSessions.removeIf(session -> !session.isOpen());
         for (Session session : activeSessions) {
             try {
-                session.getBasicRemote().sendText(message);
-            } catch (IOException exception) {
+                synchronized (session) {
+                    if (session.isOpen()) session.getBasicRemote().sendText(message);
+                }
+            } catch (IOException | IllegalStateException exception) {
                 activeSessions.remove(session);
             }
         }

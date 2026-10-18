@@ -10,6 +10,7 @@ import ru.itmo.routes.dto.LocationRequest;
 import ru.itmo.routes.dto.PageResponse;
 import ru.itmo.routes.dto.RouteRequest;
 import ru.itmo.routes.dto.RouteResponse;
+import ru.itmo.routes.service.RouteChangeNotifier;
 
 @ApplicationScoped
 public class RouteManager {
@@ -22,6 +23,9 @@ public class RouteManager {
     @Inject
     private RouteOperationsService operations;
 
+    @Inject
+    private RouteChangeNotifier notifications;
+
     public PageResponse<RouteResponse> findRoutes(int page, int size, String filter, String sortBy, String direction) {
         return routes.findRoutes(page, size, filter, sortBy, direction);
     }
@@ -31,15 +35,20 @@ public class RouteManager {
     }
 
     public RouteResponse createRoute(RouteRequest request) {
-        return routes.createRoute(request);
+        RouteResponse route = routes.createRoute(request);
+        notifications.routesChanged();
+        return route;
     }
 
     public RouteResponse updateRoute(long id, RouteRequest request) {
-        return routes.updateRoute(id, request);
+        RouteResponse route = routes.updateRoute(id, request);
+        notifications.routesChanged();
+        return route;
     }
 
     public void deleteRoute(long id) {
         routes.deleteRoute(id);
+        notifications.routesChanged();
     }
 
     public List<LocationDto> findLocations() {
@@ -47,7 +56,10 @@ public class RouteManager {
     }
 
     public LocationDto createLocation(LocationRequest request) {
-        return locations.createLocation(request);
+        LocationDto location = locations.createLocation(request);
+        notifications.locationsChanged();
+        notifications.routesChanged();
+        return location;
     }
 
     public long countLocationRoutes(long id) {
@@ -56,6 +68,8 @@ public class RouteManager {
 
     public void deleteLocation(long id, DeleteLocationRequest request) {
         locations.deleteLocation(id, request);
+        notifications.locationsChanged();
+        notifications.routesChanged();
     }
 
     public double getAverageRating() {
@@ -75,6 +89,8 @@ public class RouteManager {
     }
 
     public RouteResponse addRouteBetweenLocations(AddRouteBetweenLocationsRequest request) {
-        return operations.addRouteBetweenLocations(request);
+        RouteResponse route = operations.addRouteBetweenLocations(request);
+        notifications.routesChanged();
+        return route;
     }
 }

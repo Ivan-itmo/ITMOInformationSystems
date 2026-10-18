@@ -1,5 +1,7 @@
 import { state } from './common.js';
 
+export const max_length_symbols_input = 20;
+
 function requireObject(value, text) {
     if (value === null || typeof value !== 'object' || Array.isArray(value)) {
         throw new Error(`${text}: требуется объект.`);
@@ -7,16 +9,13 @@ function requireObject(value, text) {
 }
 
 function requireInput(input, text) {
-    if (!input || typeof input.value !== 'string'
-            || !['setCustomValidity', 'setAttribute', 'removeAttribute', 'focus', 'reportValidity']
-                .every(method => typeof input[method] === 'function')) {
+    if (!input || typeof input.value !== 'string' || !['setCustomValidity', 'setAttribute', 'removeAttribute', 'focus', 'reportValidity'] .every(method => typeof input[method] === 'function')) {
         throw new Error(`${text}: отсутствует или некорректно поле ввода.`);
     }
 }
 
 function requireForm(form) {
-    if (!form || typeof form.querySelectorAll !== 'function'
-            || !form.elements || typeof form.elements.namedItem !== 'function') {
+    if (!form || typeof form.querySelectorAll !== 'function' || !form.elements || typeof form.elements.namedItem !== 'function') {
         throw new Error('Отсутствует или некорректна форма.');
     }
 }
@@ -40,13 +39,18 @@ function resetField(input) {
 
 export function clearValidation(form) {
     requireForm(form);
-    // Проверяем все поля до сброса, чтобы не оставить форму частично обработанной.
     const inputs = Array.from(form.querySelectorAll('input, select'));
     inputs.forEach(input => requireInput(input, 'Поле формы'));
     inputs.forEach(resetField);
 }
 
 export function initValidation() {
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+        input.inputMode = input.step === 'any' ? 'decimal' : 'numeric';
+        input.type = 'text';
+        input.maxLength = max_length_symbols_input;
+        input.title = `Не более ${max_length_symbols_input} символов`;
+    });
     for (const eventName of ['input', 'change']) {
         document.addEventListener(eventName, event => {
             if (typeof event.target?.matches === 'function' && event.target.matches('input, select')) {
@@ -66,6 +70,9 @@ export function validateNumber(input, text = 'Число', options = {}) {
     if (input.validity?.badInput) reject(input, `${text}: введите число в правильном формате.`);
     const raw = input.value.trim();
     if (!raw) reject(input, `${text}: заполните обязательное поле.`);
+    if (input.value.length > max_length_symbols_input) {
+        reject(input, `${text}: не более ${max_length_symbols_input} символов.`);
+    }
     const pattern = integer ? /^\d+$/ : /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
     if (!pattern.test(raw)) {
         reject(input, `${text}: ${integer ? 'введите целое число' : 'введите число в правильном формате'}.`);
@@ -88,9 +95,8 @@ export const finiteNumber = (input, text) => validateNumber(input, text);
 export const positiveInteger = (input, text) => validateNumber(input, text, { integer: true, positive: true });
 
 export function resourceId(value, text = 'ID') {
-    if (!['string', 'number'].includes(typeof value) || !/^\d+$/.test(String(value))
-            || !Number.isSafeInteger(Number(value)) || Number(value) <= 0) {
-        throw new Error(`${text}: требуется целое число больше 0 в безопасном диапазоне JavaScript.`);
+    if (!['string', 'number'].includes(typeof value) || !/^\d+$/.test(String(value)) || !Number.isSafeInteger(Number(value)) || Number(value) <= 0) {
+        throw new Error(`${text}: требуется целое число больше 0.`);
     }
     return Number(value);
 }
@@ -102,8 +108,7 @@ export function locationId(input, text = 'Локация', options = {}) {
     booleanOption(required, 'Параметр required');
     if (!Array.isArray(locations)) throw new Error(`${text}: список локаций отсутствует или некорректен.`);
     for (const location of locations) {
-        if (!location || typeof location !== 'object' || Array.isArray(location)
-                || !Number.isSafeInteger(location.id) || location.id <= 0) {
+        if (!location || typeof location !== 'object' || Array.isArray(location) || !Number.isSafeInteger(location.id) || location.id <= 0) {
             throw new Error(`${text}: список содержит некорректную локацию.`);
         }
     }
@@ -123,7 +128,6 @@ export function locationId(input, text = 'Локация', options = {}) {
 export function formField(form, field) {
     requireForm(form);
     if (typeof field !== 'string' || !field.trim()) throw new Error('Не задано имя поля формы.');
-    // namedItem не путает поля с методами коллекции; дубли возвращают RadioNodeList.
     const input = form.elements.namedItem(field);
     requireInput(input, `Поле ${field}`);
     return input;
