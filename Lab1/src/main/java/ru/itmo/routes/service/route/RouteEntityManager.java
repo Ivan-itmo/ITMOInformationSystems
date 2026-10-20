@@ -32,7 +32,7 @@ public class RouteEntityManager {
     }
 
     public Route findRouteEntityForUpdate(long id) {
-        Route route = entityManager.find(Route.class, id, LockModeType.PESSIMISTIC_WRITE);
+        Route route = entityManager.find(Route.class, id);
         if (route == null) {
             throw new NotFoundException("Маршрут с id " + id + " удалён");
         }
