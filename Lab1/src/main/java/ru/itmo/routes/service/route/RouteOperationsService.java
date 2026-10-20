@@ -15,6 +15,7 @@ import ru.itmo.routes.dto.RouteResponse;
 import ru.itmo.routes.model.Coordinates;
 import ru.itmo.routes.model.Route;
 import ru.itmo.routes.service.NotFoundException;
+import ru.itmo.routes.service.RouteValidator;
 
 @ApplicationScoped
 public class RouteOperationsService {
@@ -22,6 +23,8 @@ public class RouteOperationsService {
     private EntityManager entityManager;
     @Inject
     private RouteEntityManager entities;
+    @Inject
+    private RouteValidator validator;
 
     public double getAverageRating() {
         Number result = (Number) entityManager.createNativeQuery("select get_avg_rating()").getSingleResult();
@@ -64,6 +67,7 @@ public class RouteOperationsService {
 
     @Transactional
     public RouteResponse addRouteBetweenLocations(AddRouteBetweenLocationsRequest request) {
+        validator.validateRouteBetweenLocations(request);
         if (request.fromLocationId() != null) {
             entities.findLocationEntity(request.fromLocationId());
         }

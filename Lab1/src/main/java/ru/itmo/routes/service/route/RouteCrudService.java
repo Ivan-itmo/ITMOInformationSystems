@@ -16,6 +16,7 @@ import ru.itmo.routes.model.Coordinates;
 import ru.itmo.routes.model.Route;
 import ru.itmo.routes.service.ConflictException;
 import ru.itmo.routes.service.ValidationException;
+import ru.itmo.routes.service.RouteValidator;
 
 @ApplicationScoped
 public class RouteCrudService {
@@ -24,6 +25,8 @@ public class RouteCrudService {
     private EntityManager entityManager;
     @Inject
     private RouteEntityManager entities;
+    @Inject
+    private RouteValidator validator;
 
     public PageResponse<RouteResponse> findRoutes(int page, int size, String filter, String sortBy, String direction) {
         if (page < 0 || size < 1) {
@@ -68,6 +71,7 @@ public class RouteCrudService {
 
     @Transactional
     public RouteResponse createRoute(RouteRequest request) {
+        validator.validateRoute(request);
         Route route = new Route();
         applyRouteFields(route, request);
         entityManager.persist(route);
@@ -78,6 +82,7 @@ public class RouteCrudService {
 
     @Transactional
     public RouteResponse updateRoute(long id, RouteRequest request) {
+        validator.validateRoute(request);
         Route route = entities.findRouteEntityForUpdate(id);
         if (request.expectedState() == null) {
             throw new ValidationException("Перед сохранением необходимо загрузить исходное состояние маршрута");

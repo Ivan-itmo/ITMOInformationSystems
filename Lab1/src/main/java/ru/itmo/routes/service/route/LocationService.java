@@ -11,15 +11,14 @@ import ru.itmo.routes.dto.LocationDto;
 import ru.itmo.routes.dto.LocationRequest;
 import ru.itmo.routes.dto.Mapper;
 import ru.itmo.routes.model.Location;
-import ru.itmo.routes.service.NotFoundException;
-import ru.itmo.routes.service.RouteValidator;
+import ru.itmo.routes.service.LocationValidator;
 
 @ApplicationScoped
 public class LocationService {
     @PersistenceContext(unitName = "routesPU")
     private EntityManager entityManager;
     @Inject
-    private RouteValidator validator;
+    private LocationValidator validator;
     @Inject
     private RouteEntityManager entities;
 
@@ -33,6 +32,7 @@ public class LocationService {
 
     @Transactional
     public LocationDto createLocation(LocationRequest request) {
+        validator.validateLocation(request);
         Location location = new Location();
         location.setX(request.x());
         location.setY(request.y());
