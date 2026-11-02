@@ -1,5 +1,6 @@
 package ru.itmo.routes.api;
 
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -21,9 +22,10 @@ import ru.itmo.routes.dto.LocationRequest;
 import ru.itmo.routes.dto.PageResponse;
 import ru.itmo.routes.dto.RouteRequest;
 import ru.itmo.routes.dto.RouteResponse;
-import ru.itmo.routes.service.route.RouteManager;
-import ru.itmo.routes.service.ParameterValidator;
+import ru.itmo.routes.service.RouteManager;
+import ru.itmo.routes.validation.ParameterValidator;
 
+@RequestScoped
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

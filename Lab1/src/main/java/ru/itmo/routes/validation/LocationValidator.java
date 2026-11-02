@@ -1,4 +1,4 @@
-package ru.itmo.routes.service;
+package ru.itmo.routes.validation;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import ru.itmo.routes.dto.LocationRequest;

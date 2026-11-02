@@ -1,12 +1,35 @@
-package ru.itmo.routes.service;
+package ru.itmo.routes.validation;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import ru.itmo.routes.dto.AddRouteBetweenLocationsRequest;
 import ru.itmo.routes.dto.CoordinatesRequest;
 import ru.itmo.routes.dto.RouteRequest;
+import ru.itmo.routes.dto.RouteResponse;
+import ru.itmo.routes.repository.RouteRepository;
 
 @ApplicationScoped
 public class RouteValidator {
+    public void validateRouteQuery(int page, int size, String sortBy, String direction) {
+        if (page < 0 || size < 1) {
+            throw new ValidationException("Номер страницы должен быть неотрицательным, размер - больше 0");
+        }
+        if (sortBy != null && !RouteRepository.supportsSort(sortBy)) {
+            throw new ValidationException("Неизвестное поле сортировки");
+        }
+        if (direction != null && !"asc".equalsIgnoreCase(direction) && !"desc".equalsIgnoreCase(direction)) {
+            throw new ValidationException("Направление сортировки должно быть asc или desc");
+        }
+    }
+
+    public void validateRouteUpdate(RouteRequest request, RouteResponse currentState) {
+        if (request.expectedState() == null) {
+            throw new ValidationException("Перед сохранением необходимо загрузить исходное состояние маршрута");
+        }
+        if (!currentState.equals(request.expectedState())) {
+            throw new ConflictException("Объект изменён другим пользователем. Откройте его заново.");
+        }
+    }
+
     public void validateRoute(RouteRequest request) {
         if (request == null) {
             throw new ValidationException("Данные маршрута обязательны");

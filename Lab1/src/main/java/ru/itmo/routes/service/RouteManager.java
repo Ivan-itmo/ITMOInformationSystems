@@ -1,4 +1,4 @@
-package ru.itmo.routes.service.route;
+package ru.itmo.routes.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -10,7 +10,6 @@ import ru.itmo.routes.dto.LocationRequest;
 import ru.itmo.routes.dto.PageResponse;
 import ru.itmo.routes.dto.RouteRequest;
 import ru.itmo.routes.dto.RouteResponse;
-import ru.itmo.routes.service.RouteChangeNotifier;
 
 @ApplicationScoped
 public class RouteManager {

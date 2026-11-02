@@ -9,7 +9,7 @@ import jakarta.json.bind.serializer.JsonbDeserializer;
 import jakarta.json.stream.JsonParser;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
-import ru.itmo.routes.service.NumericInputLimits;
+import ru.itmo.routes.validation.NumericInputLimits;
 
 @Dependent
 public class NumberInputDeserializer implements JsonbDeserializer<Number> {

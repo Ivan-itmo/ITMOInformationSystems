@@ -1,4 +1,4 @@
-package ru.itmo.routes.service;
+package ru.itmo.routes.validation;
 
 public class ValidationException extends RuntimeException {
     public ValidationException(String message) {

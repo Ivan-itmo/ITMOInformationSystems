@@ -1,4 +1,4 @@
-package ru.itmo.routes.service;
+package ru.itmo.routes.validation;
 
 public class ConflictException extends RuntimeException {
     public ConflictException(String message) {

@@ -18,8 +18,7 @@ public class JsonRequestInterceptor implements ReaderInterceptor {
             boolean parsingError = false;
             java.util.Set<Throwable> visited = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
             for (Throwable cause = exception; cause != null && visited.add(cause); cause = cause.getCause()) {
-                if (cause instanceof jakarta.validation.ValidationException
-                        || cause instanceof ru.itmo.routes.service.ValidationException) {
+                if (cause instanceof jakarta.validation.ValidationException || cause instanceof ru.itmo.routes.validation.ValidationException) {
                     throw exception;
                 }
                 if (cause instanceof JsonbException || cause instanceof JsonException) {

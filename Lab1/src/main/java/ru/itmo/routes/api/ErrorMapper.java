@@ -7,9 +7,9 @@ import jakarta.ws.rs.ext.Provider;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.validation.ConstraintViolationException;
-import ru.itmo.routes.service.NotFoundException;
-import ru.itmo.routes.service.ConflictException;
-import ru.itmo.routes.service.ValidationException;
+import ru.itmo.routes.validation.NotFoundException;
+import ru.itmo.routes.validation.ConflictException;
+import ru.itmo.routes.validation.ValidationException;
 
 @Provider
 public class ErrorMapper implements ExceptionMapper<RuntimeException> {
