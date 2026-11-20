@@ -4,7 +4,9 @@ let page = 0;
 let sortBy = 'id';
 let direction = 'asc';
 let routes = [];
-let detailsRouteId = null;
+let detailsState = null;
+let detailsDeleted = false;
+let detailsSequence = 0;
 let editingState = null;
 let loadSequence = 0;
 let editSequence = 0;
@@ -16,7 +18,13 @@ export async function loadRoutes() {
     const filter = encodeURIComponent(document.querySelector('#filterInput').value);
     const data = await request(`/routes?page=${page}&size=${size}&filter=${filter}&sortBy=${sortBy}&direction=${direction}`);
     if (sequence !== loadSequence) return;
-    routes = data.items;
+    const retainedIndex = detailsDialog.open && detailsDeleted
+        ? routes.findIndex(route => route.id === detailsState.id) : -1;
+    const retainedRoute = routes[retainedIndex];
+    routes = [...data.items];
+    if (retainedRoute && !routes.some(route => route.id === retainedRoute.id)) {
+        routes.splice(Math.min(retainedIndex, routes.length), 0, retainedRoute);
+    }
     page = data.page;
     const totalPages = Math.ceil(data.total / data.size) || 1;
     
@@ -83,11 +91,19 @@ function showEditConflict(deleted) {
     document.querySelector('#reloadRouteButton').hidden = deleted;
 }
 
+function showDetailsStatus(message, { changed = false, deleted = false } = {}) {
+    detailsDeleted = deleted;
+    if (deleted) ++detailsSequence;
+    document.querySelector('#detailsNotice').textContent = message;
+    document.querySelector('#reloadDetailsButton').hidden = !changed;
+    document.querySelector('#editFromDetails').disabled = changed || deleted;
+}
+
 function sameState(left, right) {
     if (left === right) return true;
     if (!left || !right || typeof left !== 'object' || typeof right !== 'object') return false;
     const keys = Object.keys(left);
-    return keys.length === Object.keys(right).lengthn&& keys.every(key => Object.hasOwn(right, key) && sameState(left[key], right[key]));
+    return keys.length === Object.keys(right).length && keys.every(key => Object.hasOwn(right, key) && sameState(left[key], right[key]));
 }
 
 export async function refreshOpenRoute() {
@@ -105,30 +121,33 @@ export async function refreshOpenRoute() {
             }
         }
     }
-    const id = detailsRouteId;
-    if (detailsDialog.open && id) {
+    const detailsSnapshot = detailsState;
+    if (detailsDialog.open && detailsSnapshot && !detailsDeleted) {
+        const isCurrent = () => detailsDialog.open && detailsState === detailsSnapshot && !detailsDeleted;
         try {
-            const current = await request(`/routes/${id}`);
-            if (detailsDialog.open && detailsRouteId === id) {
-                renderRouteDetails(document.querySelector('#routeDetails'), current);
+            const current = await request(`/routes/${detailsSnapshot.id}`);
+            if (isCurrent()) {
+                const changed = !sameState(current, detailsSnapshot);
+                showDetailsStatus(changed ? 'Объект изменён другим пользователем. Можно обновить данные.' : '', { changed });
             }
         } catch (error) {
-            if (detailsDialog.open && detailsRouteId === id && error.status === 404) {
-                document.querySelector('#routeDetails').textContent = 'Объект удалён другим пользователем.';
-                document.querySelector('#editFromDetails').disabled = true;
-            } else throw error;
+            if (!isCurrent()) return;
+            if (error.status === 404) showDetailsStatus('Объект удалён другим пользователем.', { deleted: true });
+            else throw error;
         }
     }
 }
 
 const showRoute = async id => {
     id = resourceId(id, 'ID маршрута');
+    const sequence = ++detailsSequence;
     const route = await request(`/routes/${id}`);
-    detailsRouteId = route.id;
+    if (sequence !== detailsSequence) return;
+    detailsState = route;
     document.querySelector('#routesError').textContent = '';
-    document.querySelector('#editFromDetails').disabled = false;
+    showDetailsStatus('');
     renderRouteDetails(document.querySelector('#routeDetails'), route);
-    detailsDialog.showModal();
+    if (!detailsDialog.open) detailsDialog.showModal();
 };
 
 export function initRoutes() {
@@ -138,6 +157,26 @@ export function initRoutes() {
     routeForm = document.querySelector('#routeForm');
     detailsDialog = document.querySelector('#detailsDialog');
     routeDialog.addEventListener('close', () => { editingState = null; ++editSequence; });
+    detailsDialog.addEventListener('close', () => {
+        const needsRefresh = detailsDeleted;
+        detailsState = null;
+        detailsDeleted = false;
+        ++detailsSequence;
+        if (needsRefresh) loadRoutes().catch(showError);
+    });
+    document.querySelector('#reloadDetailsButton').addEventListener('click', async () => {
+        const snapshot = detailsState;
+        try {
+            await showRoute(snapshot.id);
+        } catch (error) {
+            if (!detailsDialog.open || detailsState !== snapshot || detailsDeleted) return;
+            if (error.status === 404) {
+                showDetailsStatus('Объект удалён другим пользователем.', { deleted: true });
+            } else {
+                document.querySelector('#detailsNotice').textContent = error.message;
+            }
+        }
+    });
     document.querySelector('#reloadRouteButton').addEventListener('click', async () => {
         try {
             await editRoute(editingState.id);
@@ -198,7 +237,12 @@ export function initRoutes() {
         } catch (error) { showError(error); }
     });
 
-    document.querySelector('#editFromDetails').addEventListener('click', async () => { detailsDialog.close(); await editRoute(detailsRouteId).catch(showError); });
+    document.querySelector('#editFromDetails').addEventListener('click', async () => {
+        if (document.querySelector('#editFromDetails').disabled) return;
+        const id = detailsState.id;
+        detailsDialog.close();
+        await editRoute(id).catch(showError);
+    });
 
     document.querySelectorAll('th[data-sort]').forEach(th => th.addEventListener('click', () => {
         direction = sortBy === th.dataset.sort && direction === 'asc' ? 'desc' : 'asc';

@@ -51,8 +51,9 @@ export async function request(path, options = {}) {
     const response = await fetch(`${api}${path}`, fetchConfig);
     
     if (!response.ok) {
+        const body = await response.json().catch(() => null);
         const fail = message => {
-            const error = new Error(message);
+            const error = new Error(typeof body?.message === 'string' ? `Ошибка ${response.status}: ${body.message}` : message);
             error.status = response.status;
             throw error;
         };

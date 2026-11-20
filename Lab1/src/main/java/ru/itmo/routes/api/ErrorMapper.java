@@ -1,6 +1,8 @@
 package ru.itmo.routes.api;
 
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.MediaType;
+import java.util.Map;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
@@ -21,13 +23,13 @@ public class ErrorMapper implements ExceptionMapper<RuntimeException> {
         Response webResponse = null;
         for (Throwable cause = exception; cause != null && visited.add(cause); cause = cause.getCause()) {
             if (cause instanceof ValidationException || cause instanceof ConstraintViolationException) {
-                return Response.status(422).build();
+                return error(422, cause.getMessage());
             }
             if (cause instanceof NotFoundException) {
-                return Response.status(404).build();
+                return error(404, cause.getMessage());
             }
             if (cause instanceof ConflictException) {
-                return Response.status(409).build();
+                return error(409, cause.getMessage());
             }
             if (cause instanceof WebApplicationException webException) {
                 if (webResponse == null) webResponse = webException.getResponse();
@@ -37,9 +39,17 @@ public class ErrorMapper implements ExceptionMapper<RuntimeException> {
             if (webResponse.getStatus() >= 500) {
                 LOGGER.log(Level.SEVERE, "HTTP " + webResponse.getStatus() + " при обработке REST-запроса", exception);
             }
-            return webResponse;
+            String message = webResponse.getStatus() < 500
+                    ? exception.getMessage() : "Внутренняя ошибка сервера";
+            return Response.fromResponse(webResponse).type(MediaType.APPLICATION_JSON)
+                    .entity(Map.of("message", message == null ? "Ошибка запроса" : message)).build();
         }
         LOGGER.log(Level.SEVERE, "HTTP 500: необработанное исключение при обработке REST-запроса", exception);
-        return Response.status(500).build();
+        return error(500, "Внутренняя ошибка сервера");
+    }
+
+    static Response error(int status, String message) {
+        return Response.status(status).type(MediaType.APPLICATION_JSON)
+                .entity(Map.of("message", message == null ? "Ошибка запроса" : message)).build();
     }
 }

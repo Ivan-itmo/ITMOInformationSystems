@@ -1,13 +1,9 @@
 package ru.itmo.routes.validation;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ParameterValidator {
-    @Inject
-    private NumericInputLimits numericLimits;
-
     public long positiveLong(String value, String name) {
         return boundedLong(value, name, 1, Long.MAX_VALUE);
     }
@@ -24,7 +20,7 @@ public class ParameterValidator {
         if (value == null || value.isBlank()) {
             throw new ValidationException("Параметр " + name + " обязателен");
         }
-        numericLimits.checkedLiteral(value);
+        NumericInputLimits.checkedLiteral(value);
         if (!value.matches("[0-9]+")) {
             throw new ValidationException("Параметр " + name + " должен содержать только цифры");
         }

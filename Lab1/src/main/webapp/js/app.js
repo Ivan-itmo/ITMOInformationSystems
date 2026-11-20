@@ -18,9 +18,18 @@ function refreshAll() {
         refreshPromise = (async () => {
             while (refreshPending) {
                 refreshPending = false;
-                await loadLocations();
-                await loadRoutes();
-                await refreshOpenRoute();
+                const results = await Promise.allSettled([
+                    loadLocations(),
+                    (async () => {
+                        try {
+                            await refreshOpenRoute();
+                        } finally {
+                            await loadRoutes();
+                        }
+                    })()
+                ]);
+                const failure = results.find(result => result.status === 'rejected');
+                if (failure) showError(failure.reason);
             }
             errorContainer.textContent = '';
         })().finally(() => { refreshPromise = null; });

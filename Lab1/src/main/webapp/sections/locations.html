@@ -6,10 +6,19 @@
             <button id="addLocationBtn" type="submit">Добавить локацию</button>
             <span id="locationMessage" class="ok"></span>
         </form>
-        <table>
+        <div class="table-container">
+        <table class="locations-table">
+            <colgroup>
+                <col style="width: 12%">
+                <col style="width: 22%">
+                <col style="width: 22%">
+                <col style="width: 22%">
+                <col style="width: 22%">
+            </colgroup>
             <thead><tr><th>ID</th><th>X</th><th>Y</th><th>Z</th><th>Действия</th></tr></thead>
             <tbody id="locationsBody"></tbody>
         </table>
+        </div>
     </section>
 
     <dialog id="deleteDialog">

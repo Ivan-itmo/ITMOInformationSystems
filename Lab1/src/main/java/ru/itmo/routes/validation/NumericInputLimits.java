@@ -1,14 +1,13 @@
 package ru.itmo.routes.validation;
 
-import jakarta.enterprise.context.ApplicationScoped;
+public final class NumericInputLimits {
+    private static final int MAX_LENGTH = 20;
 
-@ApplicationScoped
-public class NumericInputLimits {
-    public static final int max_length = 20;
+    private NumericInputLimits() {}
 
-    public String checkedLiteral(String value) {
-        if (value != null && value.length() > max_length) {
-            throw new ValidationException("Число должно содержать не более " + max_length + " символов");
+    public static String checkedLiteral(String value) {
+        if (value.length() > MAX_LENGTH) {
+            throw new ValidationException("Число должно содержать не более " + MAX_LENGTH + " символов");
         }
         return value;
     }

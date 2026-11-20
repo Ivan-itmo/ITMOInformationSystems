@@ -10,7 +10,7 @@
             <button id="nextPage" class="secondary">Вперед -></button>
             <span id="routesStatus" style="margin-left: auto;"></span>
         </div>
-        <div class="routes-table-container">
+        <div class="table-container">
         <table class="routes-table">
             <colgroup>
                 <col style="width: 6%">
@@ -52,11 +52,11 @@
             <td data-field="to"></td>
             <td data-field="distance"></td>
             <td data-field="rating"></td>
-            <td>
+            <td><div class="route-actions">
                 <button class="table-btn secondary" data-action="edit">Изменить</button>
                 <button class="table-btn secondary" data-action="details">Инфо</button>
                 <button class="table-btn danger" data-action="delete">Удалить</button>
-            </td>
+            </div></td>
         </tr>
     </template>
 
@@ -86,8 +86,10 @@
         <form method="dialog">
             <h2>Информация о маршруте</h2>
             <div id="routeDetails" class="result"></div>
+            <p id="detailsNotice" class="update-notice" role="status"></p>
             <div class="row">
                 <button type="button" class="secondary" data-close="detailsDialog">Закрыть</button>
+                <button type="button" id="reloadDetailsButton" class="secondary" hidden>Обновить</button>
                 <button type="button" id="editFromDetails">Изменить</button>
             </div>
         </form>

@@ -12,6 +12,7 @@ import ru.itmo.routes.model.Location;
 import ru.itmo.routes.repository.LocationRepository;
 import ru.itmo.routes.repository.RouteRepository;
 import ru.itmo.routes.validation.LocationValidator;
+import ru.itmo.routes.validation.ValidationException;
 
 @ApplicationScoped
 @Transactional
@@ -47,8 +48,11 @@ public class LocationService {
     }
 
     public void deleteLocation(long id, DeleteLocationRequest request) {
+        if (request == null) {
+            throw new ValidationException("Тело запроса обязательно: укажите replacementLocationId или null для удаления без замены");
+        }
         Location location = entities.findLocationEntity(id);
-        Long replacementId = request == null ? null : request.replacementLocationId();
+        Long replacementId = request.replacementLocationId();
         validator.validateReplacementLocation(id, replacementId);
         Location replacement = replacementId == null ? null : entities.findLocationEntity(replacementId);
         validator.validateLocationDeletion(routes.countByLocation(location), replacement != null);

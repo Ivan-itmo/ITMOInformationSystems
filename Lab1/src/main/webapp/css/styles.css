@@ -54,11 +54,13 @@ h3 { margin: 20px 0 10px 0; font-size: 16px; font-weight: 600; color: #475569; }
 .toolbar span.ok { color: #047857; }
 .toolbar span.error { color: #b91c1c; }
 
-table { width: 100%; border-collapse: collapse; background: white; font-size: 14px; }
-.routes-table-container { overflow-x: auto; }
-.routes-table { table-layout: fixed; min-width: 1100px; }
-.routes-table th, .routes-table td { overflow-wrap: anywhere; }
-.routes-table .table-btn { margin-bottom: 4px; }
+table { width: 100%; table-layout: fixed; border-collapse: collapse; background: white; font-size: 14px; }
+.table-container { overflow-x: auto; }
+.routes-table { min-width: 1100px; }
+.locations-table { min-width: 520px; }
+td { overflow-wrap: anywhere; }
+.route-actions { display: flex; flex-wrap: wrap; gap: 4px; }
+.route-actions .table-btn { margin: 0; }
 th, td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: left; vertical-align: middle; }
 th { background: #f8fafc; font-weight: 600; cursor: pointer; white-space: nowrap; }
 th:hover { background: #e2e8f0; }
@@ -117,6 +119,13 @@ dialog button:hover {
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
+dialog button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
 dialog button.secondary {
     background: white;
     color: #1f2933;
@@ -158,5 +167,6 @@ dialog::backdrop { background: rgba(15, 23, 42, 0.5); }
 .error { color: #b91c1c; }
 #routesError { margin: 12px 0 0; overflow-wrap: anywhere; }
 #routesError:empty { display: none; }
-.update-notice { padding: 12px; color: #92400e; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; }
+.update-notice { margin: 0; padding: 12px; color: #92400e; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; }
+.update-notice:empty { display: none; }
 [aria-invalid="true"] { border-color: #b91c1c !important; }
